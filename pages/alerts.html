@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas - VeterinaryProject</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/alerts.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🏥 VeterinaryProject</h1>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                    <li><a href="inventory.html" class="nav-link">Inventario</a></li>
+                    <li><a href="alerts.html" class="nav-link active">Alertas</a></li>
+                    <li><a href="reports.html" class="nav-link">Reportes</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="page-icon">🚨</span>
+                        Centro de Alertas
+                    </h1>
+                    <p class="page-subtitle">Monitoreo de vencimientos, stock bajo y notificaciones del sistema</p>
+                </div>
+                <div class="page-actions">
+                    <button id="refreshAlertsBtn" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span>
+                        Actualizar
+                    </button>
+                    <button id="markAllReadBtn" class="btn btn-secondary">
+                        <span class="btn-icon">✅</span>
+                        Marcar Todo como Leído
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Summary -->
+            <div class="alert-summary">
+                <div class="summary-card critical">
+                    <div class="summary-icon">🚨</div>
+                    <div class="summary-content">
+                        <span class="summary-number" id="criticalAlerts">0</span>
+                        <span class="summary-label">Alertas Críticas</span>
+                    </div>
+                </div>
+                <div class="summary-card warning">
+                    <div class="summary-icon">⚠️</div>
+                    <div class="summary-content">
+                        <span class="summary-number" id="warningAlerts">0</span>
+                        <span class="summary-label">Advertencias</span>
+                    </div>
+                </div>
+                <div class="summary-card info">
+                    <div class="summary-icon">ℹ️</div>
+                    <div class="summary-content">
+                        <span class="summary-number" id="infoAlerts">0</span>
+                        <span class="summary-label">Informativas</span>
+                    </div>
+                </div>
+                <div class="summary-card resolved">
+                    <div class="summary-icon">✅</div>
+                    <div class="summary-content">
+                        <span class="summary-number" id="resolvedAlerts">0</span>
+                        <span class="summary-label">Resueltas Hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Filters -->
+            <div class="alert-filters">
+                <div class="filter-group">
+                    <label for="priorityFilter">Prioridad:</label>
+                    <select id="priorityFilter" class="filter-select">
+                        <option value="">Todas las prioridades</option>
+                        <option value="high">🚨 Alta</option>
+                        <option value="medium">⚠️ Media</option>
+                        <option value="low">ℹ️ Baja</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="typeFilter">Tipo:</label>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">Todos los tipos</option>
+                        <option value="Vencido">❌ Vencido</option>
+                        <option value="VencimientoProximo">⏰ Por Vencer</option>
+                        <option value="StockBajo">📦 Stock Bajo</option>
+                        <option value="SinStock">🚫 Sin Stock</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="statusFilter">Estado:</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">Todos los estados</option>
+                        <option value="active">🔴 Activas</option>
+                        <option value="resolved">✅ Resueltas</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Alert Categories -->
+            <div class="alert-categories">
+                <!-- Critical Alerts -->
+                <section class="alert-category critical">
+                    <div class="category-header">
+                        <h2 class="category-title">
+                            <span class="category-icon">🚨</span>
+                            Alertas Críticas
+                            <span class="alert-count" id="criticalCount">0</span>
+                        </h2>
+                        <p class="category-description">Requieren atención inmediata</p>
+                    </div>
+                    <div class="alert-list" id="criticalAlertsList">
+                        <!-- Las alertas críticas se cargan aquí -->
+                    </div>
+                </section>
+
+                <!-- Expiring Medicines -->
+                <section class="alert-category warning">
+                    <div class="category-header">
+                        <h2 class="category-title">
+                            <span class="category-icon">⏰</span>
+                            Medicamentos por Vencer
+                            <span class="alert-count" id="expiringCount">0</span>
+                        </h2>
+                        <p class="category-description">Próximos a vencer en los siguientes 30 días</p>
+                    </div>
+                    <div class="alert-list" id="expiringAlertsList">
+                        <!-- Las alertas de vencimiento se cargan aquí -->
+                    </div>
+                </section>
+
+                <!-- Low Stock -->
+                <section class="alert-category info">
+                    <div class="category-header">
+                        <h2 class="category-title">
+                            <span class="category-icon">📦</span>
+                            Stock Bajo
+                            <span class="alert-count" id="stockCount">0</span>
+                        </h2>
+                        <p class="category-description">Medicamentos que necesitan reabastecimiento</p>
+                    </div>
+                    <div class="alert-list" id="stockAlertsList">
+                        <!-- Las alertas de stock se cargan aquí -->
+                    </div>
+                </section>
+
+                <!-- Resolved Alerts -->
+                <section class="alert-category resolved">
+                    <div class="category-header">
+                        <h2 class="category-title">
+                            <span class="category-icon">✅</span>
+                            Alertas Resueltas
+                            <span class="alert-count" id="resolvedCount">0</span>
+                        </h2>
+                        <p class="category-description">Alertas marcadas como resueltas</p>
+                    </div>
+                    <div class="alert-list" id="resolvedAlertsList">
+                        <!-- Las alertas resueltas se cargan aquí -->
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../assets/js/global-api.js"></script>
+    <script src="../assets/js/alerts.js"></script>
+</body>
+</html>

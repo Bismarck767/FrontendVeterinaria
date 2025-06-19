@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proveedores - VeterinaryProject</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo"><h1>🏥 VeterinaryProject</h1></div>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+          <li><a href="inventory.html" class="nav-link">Inventario</a></li>
+          <li><a href="alerts.html" class="nav-link">Alertas</a></li>
+          <li><a href="proveedores.html" class="nav-link active">Proveedores</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="section active">
+      <div class="section-header">
+        <h2>Gestión de Proveedores</h2>
+      </div>
+
+   <form id="formProveedor" class="filters">
+  <input type="text" id="nombre" placeholder="Nombre del proveedor" required />
+  <input type="text" id="telefono" placeholder="Teléfono" required />
+  <input type="email" id="correo" placeholder="Correo electrónico" required />
+  <input type="text" id="direccion" placeholder="Dirección" required />
+  <button type="submit" class="btn btn-primary">Agregar Proveedor</button>
+</form>
+
+
+      <div class="table-container mt-4">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Correo</th>
+              <th>Dirección</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaProveedores">
+            <!-- Contenido dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/proveedor.js"></script>
+</body>
+</html>

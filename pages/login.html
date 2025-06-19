@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema Veterinario</title>
+    <link rel="stylesheet" href="../assets/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🐾 Sistema Veterinario</h1>
+            <p>Iniciar Sesión</p>
+        </div>
+        
+        <div class="login-form">
+            <div id="authMessage" class="message"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Usuario</label>
+                    <input 
+                        type="text" 
+                        id="loginUsername" 
+                        name="username" 
+                        class="form-control" 
+                        placeholder="Ingresa tu usuario"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input 
+                        type="password" 
+                        id="loginPassword" 
+                        name="password" 
+                        class="form-control" 
+                        placeholder="Ingresa tu contraseña"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+                
+                <button type="submit" class="btn">
+                    <span class="btn-icon">🚀</span>
+                    Iniciar Sesión
+                </button>
+            </form>
+            
+            <div class="register-link">
+                <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
+            </div>
+        </div>
+        
+        <div class="api-info">
+            🔌 Conectando con API: <strong>https://apivetery.onrender.com/api</strong><br>
+            ✅ Sin manejo de roles - Solo usuario y contraseña
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/global-api.js"></script>
+    <script src="../assets/js/login.js"></script>
+</body>
+</html>

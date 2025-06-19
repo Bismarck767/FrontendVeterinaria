@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeterinaryProject - Sistema de Inventario</title>
+    <style>
+        /* Variables CSS */
+        :root {
+          --primary-color: #2563eb;
+          --primary-dark: #1d4ed8;
+          --secondary-color: #64748b;
+          --success-color: #059669;
+          --warning-color: #d97706;
+          --danger-color: #dc2626;
+          --light-color: #f8fafc;
+          --dark-color: #0f172a;
+          --border-color: #e2e8f0;
+          --text-color: #334155;
+          --text-light: #64748b;
+          --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+          --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          --border-radius: 8px;
+          --font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        /* Reset y Base */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: var(--font-family);
+          color: var(--text-color);
+          background-color: var(--light-color);
+          line-height: 1.6;
+          padding-top: 80px;
+        }
+
+        /* Header */
+        .header {
+          background: rgba(255,255,255,0.95);
+          backdrop-filter: blur(10px);
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          box-shadow: var(--shadow-lg);
+        }
+
+        .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 1rem 2rem;
+        }
+
+        .logo h1 {
+          margin: 0;
+          color: var(--primary-color);
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        /* Buttons */
+        .btn {
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: var(--border-radius);
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-decoration: none;
+          display: inline-block;
+          text-align: center;
+        }
+
+        .btn-primary {
+          background-color: var(--primary-color);
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background-color: var(--primary-dark);
+          transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+          background-color: var(--secondary-color);
+          color: white;
+        }
+
+        .btn-secondary:hover {
+          background-color: #475569;
+          transform: translateY(-1px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 4rem 0;
+          text-align: center;
+          min-height: 70vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .hero-content h1 {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-content p {
+          font-size: 1.2rem;
+          margin-bottom: 2rem;
+          opacity: 0.9;
+          max-width: 600px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .cta-button {
+          display: inline-block;
+          background: #fff;
+          color: #667eea;
+          padding: 1rem 2rem;
+          border-radius: 50px;
+          text-decoration: none;
+          font-weight: bold;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Container */
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+
+        /* Section Title */
+        .section-title {
+          text-align: center;
+          font-size: 2.5rem;
+          color: #333;
+          margin-bottom: 3rem;
+        }
+
+        /* Features Section */
+        .features-section {
+          padding: 4rem 0;
+          background: #f8f9fa;
+        }
+
+        .features-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem;
+        }
+
+        .feature-card {
+          background: white;
+          padding: 2rem;
+          border-radius: 12px;
+          box-shadow: var(--shadow);
+          text-align: center;
+          transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+          color: #333;
+          margin-bottom: 1rem;
+          font-size: 1.25rem;
+        }
+
+        .feature-card p {
+          color: #666;
+          line-height: 1.6;
+        }
+
+        /* Quick Access */
+        .quick-access {
+          padding: 3rem 0;
+          text-align: center;
+          background: white;
+        }
+
+        .access-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          flex-wrap: wrap;
+          margin-top: 2rem;
+        }
+
+        .access-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 1rem 1.5rem;
+          background: #667eea;
+          color: white;
+          text-decoration: none;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          font-weight: 500;
+        }
+
+        .access-btn:hover {
+          background: #5a67d8;
+          transform: translateY(-2px);
+        }
+
+        /* Info Section */
+        .info-section {
+          padding: 4rem 0;
+          background: white;
+        }
+
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 2rem;
+          margin-top: 2rem;
+        }
+
+        .info-card {
+          padding: 1.5rem;
+          border: 2px solid #e2e8f0;
+          border-radius: 8px;
+          transition: border-color 0.3s ease;
+        }
+
+        .info-card:hover {
+          border-color: #667eea;
+        }
+
+        .info-card h4 {
+          color: #667eea;
+          margin-bottom: 0.5rem;
+          font-size: 1.1rem;
+        }
+
+        .info-card p {
+          color: #666;
+          margin: 0;
+        }
+
+        /* Footer */
+        footer {
+          background: #333;
+          color: white;
+          text-align: center;
+          padding: 2rem 0;
+        }
+
+        footer p {
+          margin: 0.5rem 0;
+        }
+
+        /* User Info Display */
+        .user-welcome {
+          color: var(--primary-color);
+          font-weight: 500;
+          margin-right: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          body {
+            padding-top: 60px;
+          }
+
+          .header-content {
+            padding: 1rem;
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .hero-content h1 {
+            font-size: 2rem;
+          }
+          
+          .access-buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+          
+          .access-btn {
+            width: 250px;
+            justify-content: center;
+          }
+
+          .features-grid {
+            padding: 0 1rem;
+          }
+
+          .container {
+            padding: 0 1rem;
+          }
+        }
+
+        /* Loading animation */
+        .loading {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        /* Toast styles */
+        .toast-container {
+          position: fixed;
+          top: 100px;
+          right: 1rem;
+          z-index: 10000;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🏥 VeterinaryProject</h1>
+            </div>
+            <div class="header-actions" id="headerActions">
+                <a href="pages/login.html" class="btn btn-primary">Iniciar Sesión</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>🏥 Sistema de Inventario Veterinario</h1>
+            <p>Gestiona eficientemente el inventario de medicamentos y suministros de tu clínica veterinaria con nuestro sistema integral y fácil de usar</p>
+            <a href="pages/login.html" class="cta-button">Comenzar Ahora</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Características Principales</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Dashboard Intuitivo</h3>
+                    <p>Visualiza el estado completo de tu inventario de forma clara y organizada con métricas en tiempo real para una gestión eficiente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💊</div>
+                    <h3>Gestión de Medicamentos</h3>
+                    <p>Administra medicamentos para diferentes tipos de animales con control completo de stock, fechas de vencimiento y proveedores.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚨</div>
+                    <h3>Sistema de Alertas</h3>
+                    <p>Recibe notificaciones automáticas sobre vencimientos próximos, niveles bajos de stock y situaciones que requieren atención.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Reportes Detallados</h3>
+                    <p>Genera reportes completos de consumo, inventario y análisis financiero para tomar mejores decisiones de negocio.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Access Section -->
+    <section class="quick-access">
+        <div class="container">
+            <h2 class="section-title">Acceso Rápido</h2>
+            <p>Explora todas las funcionalidades de nuestro sistema</p>
+            <div class="access-buttons">
+                <a href="pages/login.html" class="access-btn">
+                    🔐 Iniciar Sesión
+                </a>
+                <a href="pages/dashboard.html" class="access-btn" onclick="return checkAuth(event, this)">
+                    📊 Dashboard
+                </a>
+                <a href="pages/inventory.html" class="access-btn" onclick="return checkAuth(event, this)">
+                    💊 Inventario
+                </a>
+                <a href="pages/alerts.html" class="access-btn" onclick="return checkAuth(event, this)">
+                    🚨 Alertas
+                </a>
+                <a href="pages/reports.html" class="access-btn" onclick="return checkAuth(event, this)">
+                    📈 Reportes
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Info Section -->
+    <section class="info-section">
+        <div class="container">
+            <h2 class="section-title">¿Por qué elegir VeterinaryProject?</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>✅ Fácil de Usar</h4>
+                    <p>Interfaz intuitiva diseñada específicamente para clínicas veterinarias, sin complicaciones técnicas</p>
+                </div>
+                <div class="info-card">
+                    <h4>🔒 Seguro</h4>
+                    <p>Sistema de autenticación robusto con diferentes niveles de acceso y protección de datos</p>
+                </div>
+                <div class="info-card">
+                    <h4>📱 Responsivo</h4>
+                    <p>Funciona perfectamente en computadoras, tablets y dispositivos móviles para acceso desde cualquier lugar</p>
+                </div>
+                <div class="info-card">
+                    <h4>⚡ Rápido</h4>
+                    <p>Rendimiento optimizado para operaciones rápidas y eficientes, ahorrando tiempo valioso</p>
+                </div>
+                <div class="info-card">
+                    <h4>📊 Completo</h4>
+                    <p>Sistema integral que cubre todas las necesidades de gestión de inventario veterinario</p>
+                </div>
+                <div class="info-card">
+                    <h4>🔔 Alertas Inteligentes</h4>
+                    <p>Notificaciones automáticas para evitar pérdidas por vencimientos o falta de stock</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 VeterinaryProject. Sistema de Inventario Veterinario.</p>
+            <p>Desarrollado para la gestión eficiente de clínicas veterinarias.</p>
+        </div>
+    </footer>
+
+    <script>
+        // ======= HELPERS Y UTILIDADES =======
+        const Helpers = {
+            // Mostrar toast notification
+            showToast(message, type = 'info', duration = 3000) {
+                let toastContainer = document.getElementById('toastContainer');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toastContainer';
+                    toastContainer.className = 'toast-container';
+                    document.body.appendChild(toastContainer);
+                }
+
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    padding: 12px 16px;
+                    border-radius: 6px;
+                    color: white;
+                    font-weight: 500;
+                    min-width: 250px;
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    margin-bottom: 10px;
+                `;
+
+                const colors = {
+                    'success': '#10b981',
+                    'error': '#ef4444', 
+                    'warning': '#f59e0b',
+                    'info': '#3b82f6'
+                };
+                toast.style.backgroundColor = colors[type] || colors['info'];
+                toast.textContent = message;
+
+                toastContainer.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateX(0)';
+                }, 100);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 300);
+                }, duration);
+            }
+        };
+
+        // ======= GESTIÓN DE SESIÓN SIMPLIFICADA =======
+        let currentUser = null;
+
+        // Esta función será llamada desde login.js cuando haya login exitoso
+        function setUserSession(userData, token) {
+            currentUser = userData;
+            updateHeaderForLoggedUser(userData);
+            console.log('✅ Sesión establecida en index:', userData.username);
+        }
+
+        // Esta función será llamada cuando se haga logout
+        function clearUserSession() {
+            currentUser = null;
+            updateHeaderForGuestUser();
+            console.log('🚪 Sesión limpiada en index');
+        }
+
+        function updateHeaderForLoggedUser(user) {
+            const headerActions = document.getElementById('headerActions');
+            if (headerActions) {
+                headerActions.innerHTML = `
+                    <span class="user-welcome">
+                        Bienvenido, ${user.username}
+                    </span>
+                    <a href="pages/dashboard.html" class="btn btn-primary">Ir al Dashboard</a>
+                    <button onclick="handleLogout()" class="btn btn-secondary">Cerrar Sesión</button>
+                `;
+            }
+        }
+
+        function updateHeaderForGuestUser() {
+            const headerActions = document.getElementById('headerActions');
+            if (headerActions) {
+                headerActions.innerHTML = `
+                    <a href="pages/login.html" class="btn btn-primary">Iniciar Sesión</a>
+                `;
+            }
+        }
+
+        // Verificar autenticación antes de acceder a páginas protegidas
+        function checkAuth(event, link) {
+            if (!currentUser) {
+                event.preventDefault();
+                Helpers.showToast('Debe iniciar sesión para acceder a esta página', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'pages/login.html';
+                }, 1500);
+                return false;
+            }
+            return true;
+        }
+
+        // Manejar logout desde el index
+        function handleLogout() {
+            if (confirm('¿Estás seguro que quieres cerrar sesión?')) {
+                clearUserSession();
+                Helpers.showToast('Sesión cerrada correctamente', 'success');
+                
+                // Enviar mensaje a otras pestañas para que también cierren sesión
+                try {
+                    localStorage.setItem('logout_signal', Date.now().toString());
+                    localStorage.removeItem('logout_signal');
+                } catch (error) {
+                    console.warn('No se pudo enviar señal de logout:', error);
+                }
+            }
+        }
+
+        // ======= EFECTOS VISUALES =======
+        function addButtonEffects() {
+            const accessButtons = document.querySelectorAll('.access-btn');
+            accessButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    if (!this.onclick || currentUser) {
+                        this.style.transform = 'translateY(-3px) scale(1.02)';
+                    }
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Agregar efectos a los botones CTA
+            const ctaButtons = document.querySelectorAll('.cta-button');
+            ctaButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.05)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-2px) scale(1)';
+                });
+            });
+        }
+
+        function setupAnimations() {
+            // Animación de aparición para las cards
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observar elementos que queremos animar
+            const animatedElements = document.querySelectorAll('.feature-card, .info-card');
+            animatedElements.forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(el);
+            });
+        }
+
+        function navigateToPage(url) {
+            // Agregar efecto de loading
+            document.body.classList.add('loading');
+            
+            setTimeout(() => {
+                window.location.href = url;
+            }, 200);
+        }
+
+        // ======= INICIALIZACIÓN =======
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 VeterinaryProject Index cargado');
+            
+            // Configurar interfaz para usuario no logueado
+            updateHeaderForGuestUser();
+            
+            // Agregar efectos visuales
+            addButtonEffects();
+            setupAnimations();
+            
+            // Mostrar mensaje de bienvenida
+            setTimeout(() => {
+                Helpers.showToast('¡Bienvenido a VeterinaryProject! 🏥', 'info', 3000);
+            }, 1000);
+            
+            console.log('✅ Index inicializado correctamente');
+        });
+
+        // Escuchar mensajes de otras ventanas (para sincronizar login/logout)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'logout_signal') {
+                clearUserSession();
+                Helpers.showToast('Sesión cerrada desde otra pestaña', 'info');
+            }
+        });
+
+        // Detectar clics en enlaces para agregar efectos
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a[href]');
+            if (link && !link.classList.contains('access-btn') && !link.onclick) {
+                // Agregar pequeño efecto visual a otros enlaces
+                link.style.transition = 'transform 0.1s ease';
+                link.style.transform = 'scale(0.98)';
+                
+                setTimeout(() => {
+                    link.style.transform = 'scale(1)';
+                }, 100);
+            }
+        });
+
+        // Efecto parallax suave en el hero
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-section');
+            if (hero) {
+                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+
+        // Hacer disponibles globalmente para que el login.js pueda llamarlas
+        window.setUserSession = setUserSession;
+        window.clearUserSession = clearUserSession;
+        window.Helpers = Helpers;
+        window.navigateToPage = navigateToPage;
+    </script>
+</body>
+</html>

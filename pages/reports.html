@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - VeterinaryProject</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🏥 VeterinaryProject</h1>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                    <li><a href="inventory.html" class="nav-link">Inventario</a></li>
+                    <li><a href="alerts.html" class="nav-link">Alertas</a></li>
+                    <li><a href="reports.html" class="nav-link active">Reportes</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="page-icon">📊</span>
+                        Centro de Reportes
+                    </h1>
+                    <p class="page-subtitle">Genera reportes e informes del inventario</p>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <span>Cargando datos...</span>
+            </div>
+
+            <!-- Report Controls -->
+            <div class="report-controls">
+                <div class="controls-card">
+                    <h3>🔧 Configuración del Reporte</h3>
+                    <div class="controls-grid">
+                        <div class="control-group">
+                            <label for="reportType">Tipo de Reporte:</label>
+                            <select id="reportType" class="control-select">
+                                <option value="inventory">📦 Estado del Inventario</option>
+                                <option value="expiry">⏰ Medicamentos por Vencer</option>
+                                <option value="lowstock">📉 Stock Bajo</option>
+                                <option value="consumption">📈 Reporte de Consumo</option>
+                                <option value="financial">💰 Reporte Financiero</option>
+                                <option value="mostused">🏆 Más Utilizados</option>
+                            </select>
+                        </div>
+                        <div class="control-group" id="dateFromGroup" style="display: none;">
+                            <label for="dateFrom">Desde:</label>
+                            <input type="date" id="dateFrom" class="control-input">
+                        </div>
+                        <div class="control-group" id="dateToGroup" style="display: none;">
+                            <label for="dateTo">Hasta:</label>
+                            <input type="date" id="dateTo" class="control-input">
+                        </div>
+                        <div class="control-group">
+                            <button id="generateBtn" class="btn btn-primary">📊 Generar Reporte</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Reports -->
+            <div class="quick-reports">
+                <h3>⚡ Reportes Rápidos</h3>
+                <div class="quick-grid">
+                    <button class="quick-report-btn" onclick="reportsPage.quickReport('inventory')">
+                        <div class="quick-icon">📦</div>
+                        <div class="quick-content">
+                            <h4>Inventario Completo</h4>
+                            <p>Estado actual del inventario</p>
+                        </div>
+                    </button>
+                    <button class="quick-report-btn" onclick="reportsPage.quickReport('expiry')">
+                        <div class="quick-icon">⏰</div>
+                        <div class="quick-content">
+                            <h4>Por Vencer</h4>
+                            <p>Medicamentos próximos a vencer</p>
+                        </div>
+                    </button>
+                    <button class="quick-report-btn" onclick="reportsPage.quickReport('lowstock')">
+                        <div class="quick-icon">📉</div>
+                        <div class="quick-content">
+                            <h4>Stock Bajo</h4>
+                            <p>Medicamentos con stock crítico</p>
+                        </div>
+                    </button>
+                    <button class="quick-report-btn" onclick="reportsPage.quickReport('financial')">
+                        <div class="quick-icon">💰</div>
+                        <div class="quick-content">
+                            <h4>Financiero</h4>
+                            <p>Valor total del inventario</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Content -->
+            <div class="report-section">
+                <div class="report-header">
+                    <h3 id="reportTitle">📊 Reporte</h3>
+                    <div class="report-actions">
+                        <button id="exportBtn" class="btn btn-secondary" style="display: none;">📄 Exportar CSV</button>
+                        <button id="printBtn" class="btn btn-secondary" style="display: none;">🖨️ Imprimir</button>
+                    </div>
+                </div>
+                <div id="reportContent" class="report-content">
+                    <div class="welcome-report">
+                        <div class="welcome-icon">📊</div>
+                        <h4>Bienvenido al Centro de Reportes</h4>
+                        <p>Selecciona un tipo de reporte para comenzar o usa los reportes rápidos.</p>
+                        <div class="api-status" id="apiStatus">
+                            <span class="status-indicator">🔄</span>
+                            <span>Verificando conexión con la API...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+   <script src="../assets/js/global-api.js"></script>
+<script src="../assets/js/reports.js"></script>
+
+    <style>
+        /* Loading Indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        /* Main Content */
+        .main-content { 
+            padding: 2rem; 
+            background: var(--light-color); 
+            min-height: calc(100vh - 64px);
+        }
+        
+        .page-header { 
+            margin-bottom: 2rem; 
+        }
+        
+        .page-title { 
+            font-size: 2rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            margin: 0; 
+            color: var(--dark-color);
+        }
+        
+        .page-subtitle { 
+            color: var(--text-light); 
+            margin: 0.5rem 0 0 0; 
+        }
+        
+        /* Report Controls */
+        .report-controls { 
+            margin-bottom: 2rem; 
+        }
+        
+        .controls-card { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            box-shadow: var(--shadow); 
+        }
+        
+        .controls-card h3 {
+            margin: 0 0 1rem 0;
+            color: var(--dark-color);
+        }
+        
+        .controls-grid { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr 1fr auto; 
+            gap: 1rem; 
+            align-items: end; 
+        }
+        
+        .control-group label { 
+            display: block; 
+            margin-bottom: 0.5rem; 
+            font-weight: 500; 
+            color: var(--text-color);
+        }
+        
+        .control-select, .control-input { 
+            width: 100%; 
+            padding: 0.75rem; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .control-select:focus, .control-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        /* Quick Reports */
+        .quick-reports { 
+            margin-bottom: 2rem; 
+        }
+        
+        .quick-reports h3 {
+            margin: 0 0 1rem 0;
+            color: var(--dark-color);
+        }
+        
+        .quick-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1rem; 
+        }
+        
+        .quick-report-btn { 
+            background: white; 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 1rem; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            transition: all 0.2s; 
+            box-shadow: var(--shadow); 
+        }
+        
+        .quick-report-btn:hover { 
+            border-color: var(--primary-color); 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-lg); 
+        }
+        
+        .quick-icon { 
+            font-size: 2rem; 
+        }
+        
+        .quick-content h4 { 
+            margin: 0 0 0.25rem 0; 
+            color: var(--dark-color);
+        }
+        
+        .quick-content p { 
+            margin: 0; 
+            color: var(--text-light); 
+            font-size: 0.875rem; 
+        }
+        
+        /* Report Section */
+        .report-section { 
+            background: white; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: var(--shadow); 
+        }
+        
+        .report-header { 
+            padding: 1.5rem; 
+            border-bottom: 1px solid var(--border-color); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .report-header h3 {
+            margin: 0;
+            color: var(--dark-color);
+        }
+        
+        .report-actions { 
+            display: flex; 
+            gap: 1rem; 
+        }
+        
+        .report-content { 
+            padding: 1.5rem; 
+            min-height: 400px; 
+        }
+        
+        /* Welcome/Loading States */
+        .welcome-report { 
+            text-align: center; 
+            padding: 3rem; 
+            color: var(--text-light); 
+        }
+        
+        .welcome-icon { 
+            font-size: 4rem; 
+            margin-bottom: 1rem; 
+        }
+        
+        .welcome-report h4 {
+            color: var(--dark-color);
+            margin: 0 0 1rem 0;
+        }
+        
+        .api-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .status-indicator {
+            font-size: 1rem;
+        }
+        
+        .loading-state { 
+            text-align: center; 
+            padding: 3rem; 
+        }
+        
+        .placeholder-report { 
+            text-align: center; 
+            padding: 3rem; 
+            color: var(--text-light); 
+        }
+        
+        .placeholder-icon { 
+            font-size: 4rem; 
+            margin-bottom: 1rem; 
+        }
+        
+        /* Report Content */
+        .report-summary { 
+            margin-bottom: 2rem; 
+        }
+        
+        .summary-stats { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 1rem; 
+        }
+        
+        .stat-item { 
+            text-align: center; 
+            padding: 1rem; 
+            background: var(--light-color); 
+            border-radius: 8px; 
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .stat-item.success { 
+            border-left-color: var(--success-color); 
+        }
+        
+        .stat-item.warning { 
+            border-left-color: var(--warning-color); 
+        }
+        
+        .stat-item.danger { 
+            border-left-color: var(--danger-color); 
+        }
+        
+        .stat-number { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            display: block; 
+            color: var(--dark-color);
+        }
+        
+        .stat-label { 
+            font-size: 0.875rem; 
+            color: var(--text-light); 
+        }
+        
+        /* Report Tables */
+        .report-table { 
+            margin-bottom: 2rem; 
+        }
+        
+        .report-table h4 { 
+            margin-bottom: 1rem; 
+            color: var(--dark-color);
+        }
+        
+        .table-danger { 
+            background: rgba(239, 68, 68, 0.1); 
+        }
+        
+        .table-warning { 
+            background: rgba(251, 191, 36, 0.1); 
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+        
+        /* Spinner */
+        .spinner { 
+            width: 40px; 
+            height: 40px; 
+            border: 4px solid var(--border-color); 
+            border-top: 4px solid var(--primary-color); 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            margin: 0 auto 1rem; 
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .controls-grid { 
+                grid-template-columns: 1fr 1fr; 
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content { 
+                padding: 1rem; 
+            }
+            
+            .controls-grid { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .quick-grid { 
+                grid-template-columns: 1fr; 
+            }
+            
+            .report-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            
+            .report-actions {
+                justify-content: center;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .report-header,
+            .report-controls,
+            .quick-reports {
+                display: none;
+            }
+            
+            .report-content {
+                padding: 0;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</body>
+</html>

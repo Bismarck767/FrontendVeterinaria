@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - VeterinaryProject</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🏥 VeterinaryProject</h1>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+                    <li><a href="inventory.html" class="nav-link">Inventario</a></li>
+                    <li><a href="alerts.html" class="nav-link">Alertas</a></li>
+                    <li><a href="reports.html" class="nav-link">Reportes</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <span>Cargando datos...</span>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h1 class="welcome-title">
+                        <span class="welcome-icon">👋</span>
+                        Bienvenido al Dashboard
+                    </h1>
+                    <p class="welcome-subtitle" id="welcomeMessage">
+                        Panel de control del sistema de inventario veterinario
+                    </p>
+                    <div class="welcome-stats">
+                        <div class="quick-stat">
+                            <span class="stat-icon">📅</span>
+                            <span id="currentDate"></span>
+                        </div>
+                        <div class="quick-stat">
+                            <span class="stat-icon">⏰</span>
+                            <span id="currentTime"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Cards -->
+            <section class="dashboard-overview">
+                <div class="dashboard-cards">
+                    <div class="card card-primary">
+                        <div class="card-icon">💊</div>
+                        <div class="card-content">
+                            <h3>Total Medicamentos</h3>
+                            <p class="card-number" id="totalMeds">0</p>
+                            <small class="card-change positive" id="medsChange">cargando...</small>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-warning">
+                        <div class="card-icon">⚠️</div>
+                        <div class="card-content">
+                            <h3>Próximos a Vencer</h3>
+                            <p class="card-number" id="expiringSoon">0</p>
+                            <small class="card-change" id="expiringChange">en 30 días</small>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-danger">
+                        <div class="card-icon">📦</div>
+                        <div class="card-content">
+                            <h3>Stock Bajo</h3>
+                            <p class="card-number" id="lowStock">0</p>
+                            <small class="card-change negative" id="stockChange">requieren atención</small>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-success">
+                        <div class="card-icon">💰</div>
+                        <div class="card-content">
+                            <h3>Valor Total</h3>
+                            <p class="card-number" id="totalValue">$0</p>
+                            <small class="card-change" id="valueChange">inventario actual</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions-section">
+                <h2 class="section-title">⚡ Acciones Rápidas</h2>
+                <div class="quick-actions-grid">
+                    <button class="quick-action-card" onclick="openAddMedicine()">
+                        <div class="action-icon">➕</div>
+                        <div class="action-content">
+                            <h3>Agregar Medicamento</h3>
+                            <p>Registrar nuevo producto en el inventario</p>
+                        </div>
+                    </button>
+
+                    <button class="quick-action-card" onclick="openSearchMedicine()">
+                        <div class="action-icon">🔍</div>
+                        <div class="action-content">
+                            <h3>Buscar Medicamento</h3>
+                            <p>Encontrar productos en el inventario</p>
+                        </div>
+                    </button>
+
+                    <button class="quick-action-card" onclick="window.location.href='reports.html'">
+                        <div class="action-icon">📊</div>
+                        <div class="action-content">
+                            <h3>Generar Reporte</h3>
+                            <p>Crear reportes de inventario y consumo</p>
+                        </div>
+                    </button>
+
+                    <button class="quick-action-card" onclick="window.location.href='alerts.html'">
+                        <div class="action-icon">🚨</div>
+                        <div class="action-content">
+                            <h3>Ver Alertas</h3>
+                            <p>Revisar alertas de vencimiento y stock</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Activity & Alerts -->
+            <div class="dashboard-grid">
+                <section class="recent-activity">
+                    <h2 class="section-title">🔄 Actividad Reciente</h2>
+                    <div class="activity-container">
+                        <div id="recentActivity" class="activity-list">
+                            <!-- La actividad se carga dinámicamente -->
+                        </div>
+                        <div class="activity-footer">
+                            <a href="inventory.html" class="view-all-link">Ver todo el inventario →</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="critical-alerts">
+                    <h2 class="section-title">🚨 Alertas Críticas</h2>
+                    <div class="alerts-container">
+                        <div id="criticalAlerts" class="alerts-list">
+                            <!-- Las alertas se cargan dinámicamente -->
+                        </div>
+                        <div class="alerts-footer">
+                            <a href="alerts.html" class="view-all-link">Ver todas las alertas →</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Inventory Summary -->
+            <section class="inventory-summary">
+                <div id="animalSummaryContainer">
+                    <h2 class="section-title">📋 Resumen del Inventario</h2>
+                    <p>Cargando datos del inventario...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+   <script src="../assets/js/global-api.js"></script>
+<script src="../assets/js/dashboard.js"></script>
+
+    <script>
+        // Funciones globales para los botones
+        function openAddMedicine() {
+            console.log('➕ Abriendo modal de agregar medicamento');
+            localStorage.setItem('openAddModal', 'true');
+            window.location.href = 'inventory.html';
+        }
+
+        function openSearchMedicine() {
+            console.log('🔍 Enfocando búsqueda');
+            localStorage.setItem('focusSearch', 'true');
+            window.location.href = 'inventory.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - VeterinaryProject</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/inventory.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <h1>🏥 VeterinaryProject</h1>
+            </div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                    <li><a href="inventory.html" class="nav-link active">Inventario</a></li>
+                    <li><a href="alerts.html" class="nav-link">Alertas</a></li>
+                    <li><a href="reports.html" class="nav-link">Reportes</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                <span id="userName">Usuario</span>
+                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title-section">
+                    <h1 class="page-title">
+                        <span class="page-icon">💊</span>
+                        Gestión de Inventario
+                    </h1>
+                    <p class="page-subtitle">Administra los medicamentos y productos veterinarios</p>
+                </div>
+                <div class="page-actions">
+                    <button id="addMedBtn" class="btn btn-primary">
+                        <span class="btn-icon">➕</span>
+                        Agregar Medicamento
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <span class="btn-icon">📤</span>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <span>Cargando...</span>
+            </div>
+
+            <!-- Inventory Stats -->
+            <div class="inventory-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="totalMedicines">0</span>
+                        <span class="stat-label">Total Medicamentos</span>
+                    </div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="lowStockCount">0</span>
+                        <span class="stat-label">Stock Bajo</span>
+                    </div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="expiringCount">0</span>
+                        <span class="stat-label">Por Vencer</span>
+                    </div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="totalValue">$0</span>
+                        <span class="stat-label">Valor Total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="filters-section">
+                <div class="filters-card">
+                    <h3 class="filters-title">
+                        <span class="filters-icon">🔍</span>
+                        Filtros y Búsqueda
+                    </h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="searchInput">Buscar:</label>
+                            <input type="text" 
+                                   id="searchInput" 
+                                   placeholder="Nombre o código del medicamento..."
+                                   class="filter-input">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterType">Tipo de Animal:</label>
+                            <select id="filterType" class="filter-select">
+                                <option value="">Todos los tipos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterStatus">Estado:</label>
+                            <select id="filterStatus" class="filter-select">
+                                <option value="">Todos los estados</option>
+                                <option value="available">✅ Disponible</option>
+                                <option value="low">⚠️ Stock Bajo</option>
+                                <option value="expired">❌ Vencido</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button id="clearFiltersBtn" class="btn btn-outline">
+                                <span class="btn-icon">🗑️</span>
+                                Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory Table -->
+            <div class="inventory-table-section">
+                <div class="table-header">
+                    <h3 class="table-title">Lista de Medicamentos</h3>
+                    <div class="table-actions">
+                        <span class="results-count" id="resultsCount">0 medicamentos</span>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="medicineTable" class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="codigo">
+                                    <span class="th-content">Código</span>
+                                    <span class="sort-icon">↕️</span>
+                                </th>
+                                <th class="sortable" data-sort="nombre">
+                                    <span class="th-content">Medicamento</span>
+                                    <span class="sort-icon">↕️</span>
+                                </th>
+                                <th class="sortable" data-sort="cantidad">
+                                    <span class="th-content">Stock</span>
+                                    <span class="sort-icon">↕️</span>
+                                </th>
+                                <th>Tipo</th>
+                                <th class="sortable" data-sort="fechaVencimiento">
+                                    <span class="th-content">Vencimiento</span>
+                                    <span class="sort-icon">↕️</span>
+                                </th>
+                                <th>Proveedor</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicineTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container" id="paginationContainer">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Agregar/Editar Medicamento -->
+    <div id="medicineModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Medicamento</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="medicineForm" class="modal-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medCode">
+                            <span class="form-icon">🏷️</span>
+                            Código*
+                        </label>
+                        <input type="text" id="medCode" name="codigo" required 
+                               placeholder="Ej: DOG001, CAT002">
+                    </div>
+                    <div class="form-group">
+                        <label for="medName">
+                            <span class="form-icon">💊</span>
+                            Nombre*
+                        </label>
+                        <input type="text" id="medName" name="nombre" required 
+                               placeholder="Nombre del medicamento">
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medQuantity">
+                            <span class="form-icon">📦</span>
+                            Cantidad*
+                        </label>
+                        <input type="number" id="medQuantity" name="cantidadActual" min="0" required 
+                               placeholder="Cantidad en stock">
+                    </div>
+                    <div class="form-group">
+                        <label for="medMinStock">
+                            <span class="form-icon">⚠️</span>
+                            Stock Mínimo*
+                        </label>
+                        <input type="number" id="medMinStock" name="stockMinimo" min="0" required 
+                               placeholder="Cantidad mínima">
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medDose">
+                            <span class="form-icon">🥄</span>
+                            Dosis*
+                        </label>
+                        <input type="text" id="medDose" name="dosis" required 
+                               placeholder="Ej: 250mg, 5ml">
+                    </div>
+                    <div class="form-group">
+                        <label for="medType">
+                            <span class="form-icon">🎯</span>
+                            Tipo de Animal*
+                        </label>
+                        <select id="medType" name="tipoAnimal" required>
+                            <option value="">Seleccionar tipo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="medExpiry">
+                            <span class="form-icon">📅</span>
+                            Fecha de Vencimiento*
+                        </label>
+                        <input type="date" id="medExpiry" name="fechaVencimiento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="medSupplier">
+                            <span class="form-icon">🏢</span>
+                            Proveedor*
+                        </label>
+                        <select id="medSupplier" name="proveedorId" required>
+                            <option value="">Seleccionar proveedor</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-icon">💾</span>
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+   <script src="../assets/js/global-api.js"></script>
+<script src="../assets/js/inventory.js"></script>
+
+</body>
+</html>
