@@ -1,4 +1,4 @@
-// ========== SERVICIO API GLOBAL ARREGLADO PARA TU API ==========
+// ========== SERVICIO API GLOBAL ARREGLADO PARA TU API CON WARMUP ==========
 // Este archivo debe cargarse ANTES que todos los demás JS
 
 const GlobalApiService = {
@@ -9,6 +9,7 @@ const GlobalApiService = {
     currentUser: null,
     authToken: null,
     isAuthenticating: false,
+    apiAwake: false,
     
     // ========== ENDPOINTS ==========
     endpoints: {
@@ -20,30 +21,145 @@ const GlobalApiService = {
         reportes: '/Reportes'
     },
 
-    // ========== AUTENTICACIÓN ARREGLADA ==========
+    // ========== NUEVO: WARMUP DE API ==========
+    async wakeUpApi() {
+        if (this.apiAwake) return true;
+        
+        console.log('☕ Despertando API (puede tomar 30-60 segundos)...');
+        GlobalHelpers.showToast('Conectando con el servidor...', 'info', 5000);
+        
+        try {
+            // Intentar ping simple
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos timeout
+            
+            const response = await fetch(this.API_BASE_URL + '/ping', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                console.log('✅ API despierta con ping');
+                this.apiAwake = true;
+                return true;
+            }
+        } catch (error) {
+            console.warn('⚠️ Ping falló, probando con medicamentos:', error.message);
+        }
+        
+        // Si no hay endpoint ping, usar medicamentos
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            
+            const response = await fetch(this.API_BASE_URL + this.endpoints.medicamentos, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            console.log('✅ API respondió con status:', response.status);
+            this.apiAwake = true;
+            GlobalHelpers.showToast('Servidor conectado', 'success');
+            return true;
+        } catch (error) {
+            console.error('❌ API no responde después del timeout:', error);
+            GlobalHelpers.showToast('Servidor no responde. Usando datos de ejemplo.', 'warning', 8000);
+            return false;
+        }
+    },
+
+    // ========== MÉTODO CON RETRY AUTOMÁTICO ==========
+    async apiRequestWithRetry(url, options = {}, maxRetries = 2) {
+        for (let i = 0; i <= maxRetries; i++) {
+            try {
+                if (i > 0) {
+                    console.log(`🔄 Reintento ${i}/${maxRetries} para: ${url}`);
+                    await this.wakeUpApi(); // Despertar en reintentos
+                }
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+                
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        ...options.headers
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    this.apiAwake = true; // Marcar API como despierta
+                    return response;
+                }
+                
+                if (response.status >= 500 && i < maxRetries) {
+                    console.warn(`⚠️ Error ${response.status}, reintentando...`);
+                    this.apiAwake = false; // Marcar como dormida
+                    await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1))); // Espera progresiva
+                    continue;
+                }
+                
+                return response; // Devolver respuesta aunque no sea ok
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.warn('⚠️ Timeout en la petición');
+                    this.apiAwake = false;
+                }
+                
+                if (i < maxRetries) {
+                    console.warn(`⚠️ Error de red, reintentando en ${2 * (i + 1)}s...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+                    continue;
+                }
+                throw error;
+            }
+        }
+    },
+
+    // ========== AUTENTICACIÓN MEJORADA CON WARMUP ==========
     async login(credentials) {
         console.log('🔐 Iniciando login con TU API:', credentials.username);
         
         try {
             this.isAuthenticating = true;
             
-            // Llamar a TU endpoint de login SIN ROL
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.usuarios}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    NombreUsuario: credentials.username,  // Tu DTO usa NombreUsuario
-                    Contraseña: credentials.password      // Tu DTO usa Contraseña
-                    // NO mandamos Role porque tu API no lo usa
-                })
-            });
+            // Despertar API primero
+            await this.wakeUpApi();
+            
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.usuarios}/login`,
+                {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        NombreUsuario: credentials.username,  // Tu DTO usa NombreUsuario
+                        Contraseña: credentials.password      // Tu DTO usa Contraseña
+                    })
+                }
+            );
+
+            console.log('📡 Respuesta status:', response.status);
 
             if (response.ok) {
                 const result = await response.json();
                 console.log('✅ Respuesta de TU API:', result);
                 
                 // Construir userData con la respuesta de tu API
-                // Asignar rol basado en el username si tu API no lo devuelve
                 let role = 'employee'; // Por defecto empleado
                 if (credentials.username.toLowerCase() === 'admin' || 
                     result.Username?.toLowerCase() === 'admin') {
@@ -60,17 +176,22 @@ const GlobalApiService = {
                 this.setCurrentUser(userData, result.Token || 'api_token_' + Date.now());
                 
                 console.log('✅ Login exitoso con TU API');
+                GlobalHelpers.showToast(`Bienvenido ${userData.username}`, 'success');
                 return { success: true, user: userData, token: this.authToken };
                 
             } else {
                 const errorText = await response.text();
-                console.error('❌ Error de TU API:', errorText);
-                return { success: false, message: errorText || 'Credenciales incorrectas' };
+                console.error('❌ Error de TU API:', response.status, errorText);
+                return { success: false, message: `Error ${response.status}: ${errorText || 'Credenciales incorrectas'}` };
             }
             
         } catch (error) {
             console.error('❌ Error conectando con TU API:', error);
-            return { success: false, message: 'Error de conexión con el servidor: ' + error.message };
+            let message = 'Error de conexión con el servidor';
+            if (error.name === 'AbortError') {
+                message = 'La API no responde. Puede estar iniciándose (espera 1-2 minutos)';
+            }
+            return { success: false, message: message + ': ' + error.message };
         } finally {
             this.isAuthenticating = false;
         }
@@ -82,13 +203,16 @@ const GlobalApiService = {
         try {
             // Intentar logout en TU API
             if (this.authToken) {
-                const response = await fetch(`${this.API_BASE_URL}${this.endpoints.usuarios}/logout`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.authToken}`
+                const response = await this.apiRequestWithRetry(
+                    `${this.API_BASE_URL}${this.endpoints.usuarios}/logout`,
+                    {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.authToken}`
+                        }
                     }
-                });
+                );
                 
                 if (response.ok) {
                     const result = await response.text();
@@ -99,6 +223,7 @@ const GlobalApiService = {
             console.warn('⚠️ Error en logout API (no crítico):', error);
         } finally {
             this.clearCurrentUser();
+            GlobalHelpers.showToast('Sesión cerrada', 'info');
         }
     },
 
@@ -106,18 +231,23 @@ const GlobalApiService = {
         console.log('📝 Registrando usuario con TU API:', userData.username);
         
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    NombreUsuario: userData.username,  // Tu DTO
-                    Contraseña: userData.password      // Tu DTO
-                    // NO mandamos Role
-                })
-            });
+            await this.wakeUpApi();
+            
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        NombreUsuario: userData.username,  // Tu DTO
+                        Contraseña: userData.password      // Tu DTO
+                    })
+                }
+            );
 
             if (response.ok) {
                 const result = await response.text(); // Tu API devuelve string
+                GlobalHelpers.showToast('Usuario registrado exitosamente', 'success');
                 return { success: true, message: result };
             } else {
                 const error = await response.text();
@@ -203,110 +333,132 @@ const GlobalApiService = {
         return false;
     },
 
-    // ========== GESTIÓN DE DATOS CON TU API ==========
+    // ========== GESTIÓN DE DATOS CON RETRY ==========
     async getMedicamentos() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.medicamentos}`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.medicamentos}`,
+                { headers: this.getAuthHeaders() }
+            );
             
-            if (!response.ok) {
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Medicamentos cargados desde TU API:', data.length);
+                return data;
+            } else {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            const data = await response.json();
-            console.log('✅ Medicamentos cargados desde TU API:', data.length);
-            return data;
         } catch (error) {
-            console.warn('⚠️ Error API medicamentos, usando datos demo:', error.message);
+            console.warn('⚠️ API no disponible, usando datos demo:', error.message);
+            GlobalHelpers.showToast('API no disponible, mostrando datos de ejemplo', 'warning');
             return this.getDemoMedicamentos();
         }
     },
 
     async createMedicamento(data) {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.medicamentos}`, {
-                method: 'POST',
-                headers: this.getAuthHeaders(),
-                body: JSON.stringify(data)
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.medicamentos}`,
+                {
+                    method: 'POST',
+                    headers: this.getAuthHeaders(),
+                    body: JSON.stringify(data)
+                }
+            );
             
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(errorText || `HTTP ${response.status}`);
             }
             
-            return await response.json();
+            const result = await response.json();
+            GlobalHelpers.showToast('Medicamento creado exitosamente', 'success');
+            return result;
         } catch (error) {
             console.error('❌ Error creando medicamento en TU API:', error);
+            GlobalHelpers.showToast('Error creando medicamento: ' + error.message, 'error');
             throw error;
         }
     },
 
     async updateMedicamento(id, data) {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.medicamentos}/${id}`, {
-                method: 'PUT',
-                headers: this.getAuthHeaders(),
-                body: JSON.stringify(data)
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.medicamentos}/${id}`,
+                {
+                    method: 'PUT',
+                    headers: this.getAuthHeaders(),
+                    body: JSON.stringify(data)
+                }
+            );
             
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(errorText || `HTTP ${response.status}`);
             }
             
-            return await response.json();
+            const result = await response.json();
+            GlobalHelpers.showToast('Medicamento actualizado exitosamente', 'success');
+            return result;
         } catch (error) {
             console.error('❌ Error actualizando medicamento en TU API:', error);
+            GlobalHelpers.showToast('Error actualizando medicamento: ' + error.message, 'error');
             throw error;
         }
     },
 
     async deleteMedicamento(id) {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.medicamentos}/${id}`, {
-                method: 'DELETE',
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.medicamentos}/${id}`,
+                {
+                    method: 'DELETE',
+                    headers: this.getAuthHeaders()
+                }
+            );
             
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(errorText || `HTTP ${response.status}`);
             }
             
+            GlobalHelpers.showToast('Medicamento eliminado exitosamente', 'success');
             return true;
         } catch (error) {
             console.error('❌ Error eliminando medicamento en TU API:', error);
+            GlobalHelpers.showToast('Error eliminando medicamento: ' + error.message, 'error');
             throw error;
         }
     },
 
     async getProveedores() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.proveedores}`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.proveedores}`,
+                { headers: this.getAuthHeaders() }
+            );
             
-            if (!response.ok) {
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Proveedores cargados desde TU API:', data.length);
+                return data;
+            } else {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
-            const data = await response.json();
-            console.log('✅ Proveedores cargados desde TU API:', data.length);
-            return data;
         } catch (error) {
             console.warn('⚠️ Error API proveedores, usando datos demo:', error.message);
             return this.getDemoProveedores();
         }
     },
 
-    // ========== ALERTAS (PUEDEN FALLAR PORQUE QUIZÁS NO EXISTAN EN TU API) ==========
+    // ========== ALERTAS CON FALLBACK LOCAL ==========
     async getVencimientosProximos() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.alertas}/vencimientos-proximos`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.alertas}/vencimientos-proximos`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -318,9 +470,10 @@ const GlobalApiService = {
 
     async getVencidos() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.alertas}/vencidos`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.alertas}/vencidos`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -332,9 +485,10 @@ const GlobalApiService = {
 
     async getStockMinimo() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.alertas}/stock-minimo`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.alertas}/stock-minimo`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -347,9 +501,10 @@ const GlobalApiService = {
     // ========== REPORTES Y MOVIMIENTOS ==========
     async getMovimientos() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.movimientos}`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.movimientos}`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -361,9 +516,10 @@ const GlobalApiService = {
 
     async getConsumoMensual(year, month) {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.reportes}/consumo-mensual?year=${year}&month=${month}`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.reportes}/consumo-mensual?year=${year}&month=${month}`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -375,9 +531,10 @@ const GlobalApiService = {
 
     async getMasUtilizados() {
         try {
-            const response = await fetch(`${this.API_BASE_URL}${this.endpoints.reportes}/mas-utilizados`, {
-                headers: this.getAuthHeaders()
-            });
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.reportes}/mas-utilizados`,
+                { headers: this.getAuthHeaders() }
+            );
             
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
@@ -466,6 +623,19 @@ const GlobalApiService = {
                 proveedorId: 2,
                 proveedorNombre: 'HealthyPets',
                 fechaCreacion: '2024-02-10T14:30:00'
+            },
+            {
+                id: 3,
+                codigo: 'BIRD001',
+                nombre: 'Antibiótico Aviario',
+                cantidad: 25,
+                stockMinimo: 5,
+                dosis: '10ml',
+                tipoAnimal: 'aves',
+                fechaVencimiento: '2025-03-20T00:00:00',
+                proveedorId: 1,
+                proveedorNombre: 'VetPharma',
+                fechaCreacion: '2024-03-01T08:00:00'
             }
         ];
     },
@@ -473,7 +643,8 @@ const GlobalApiService = {
     getDemoProveedores() {
         return [
             { id: 1, nombre: 'VetPharma', telefono: '123-456-7890', correo: 'info@vetpharma.com', direccion: 'San José' },
-            { id: 2, nombre: 'HealthyPets', telefono: '098-765-4321', correo: 'ventas@healthypets.com', direccion: 'Cartago' }
+            { id: 2, nombre: 'HealthyPets', telefono: '098-765-4321', correo: 'ventas@healthypets.com', direccion: 'Cartago' },
+            { id: 3, nombre: 'AnimalCare', telefono: '456-789-0123', correo: 'contacto@animalcare.com', direccion: 'Alajuela' }
         ];
     },
 
@@ -487,24 +658,35 @@ const GlobalApiService = {
                 cantidad: 50,
                 fecha: '2024-06-10T09:00:00',
                 motivo: 'Compra de stock'
+            },
+            {
+                id: 2,
+                medicamentoId: 2,
+                medicamentoNombre: 'Vitaminas Felinas',
+                tipoMovimiento: 'salida',
+                cantidad: 5,
+                fecha: '2024-06-15T14:30:00',
+                motivo: 'Venta'
             }
         ];
     },
 
     getDemoConsumo() {
         return [
-            { medicamentoId: 1, nombre: 'Amoxicilina Canina', codigo: 'DOG001', cantidad: 15 }
+            { medicamentoId: 1, nombre: 'Amoxicilina Canina', codigo: 'DOG001', cantidad: 15 },
+            { medicamentoId: 2, nombre: 'Vitaminas Felinas', codigo: 'CAT001', cantidad: 8 }
         ];
     },
 
     getDemoMasUtilizados() {
         return [
-            { medicamentoId: 1, nombre: 'Amoxicilina Canina', codigo: 'DOG001', usage: 85 }
+            { medicamentoId: 1, nombre: 'Amoxicilina Canina', codigo: 'DOG001', usage: 85 },
+            { medicamentoId: 3, nombre: 'Antibiótico Aviario', codigo: 'BIRD001', usage: 60 }
         ];
     }
 };
 
-// ========== HELPERS GLOBALES ==========
+// ========== HELPERS GLOBALES MEJORADOS ==========
 const GlobalHelpers = {
     formatDate(date, format = 'dd/mm/yyyy') {
         const d = new Date(date);
@@ -560,6 +742,7 @@ const GlobalHelpers = {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                pointer-events: none;
             `;
             document.body.appendChild(toastContainer);
         }
@@ -567,7 +750,7 @@ const GlobalHelpers = {
         const toast = document.createElement('div');
         toast.style.cssText = `
             padding: 12px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             color: white;
             font-weight: 500;
             min-width: 250px;
@@ -577,6 +760,8 @@ const GlobalHelpers = {
             transition: all 0.3s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             word-wrap: break-word;
+            pointer-events: auto;
+            cursor: pointer;
         `;
 
         const colors = {
@@ -588,6 +773,17 @@ const GlobalHelpers = {
         toast.style.backgroundColor = colors[type] || colors['info'];
         toast.textContent = message;
 
+        // Cerrar al hacer clic
+        toast.addEventListener('click', () => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        });
+
         toastContainer.appendChild(toast);
 
         // Animar entrada
@@ -598,14 +794,185 @@ const GlobalHelpers = {
 
         // Remover después del tiempo especificado
         setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
-            }, 300);
+            if (toast.parentNode && toast.style.opacity !== '0') {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
         }, duration);
+    },
+
+    // Nuevo: mostrar loading spinner
+    showLoadingSpinner() {
+        let spinner = document.getElementById('globalLoadingSpinner');
+        if (!spinner) {
+            spinner = document.createElement('div');
+            spinner.id = 'globalLoadingSpinner';
+            spinner.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            `;
+            
+            const spinnerInner = document.createElement('div');
+            spinnerInner.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border: 5px solid #f3f3f3;
+                border-top: 5px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            `;
+            
+            // Agregar CSS de animación
+            if (!document.getElementById('spinnerStyles')) {
+                const style = document.createElement('style');
+                style.id = 'spinnerStyles';
+                style.textContent = `
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            spinner.appendChild(spinnerInner);
+            document.body.appendChild(spinner);
+        }
+        
+        spinner.style.display = 'flex';
+    },
+
+    hideLoadingSpinner() {
+        const spinner = document.getElementById('globalLoadingSpinner');
+        if (spinner) {
+            spinner.style.display = 'none';
+        }
+    },
+
+    // Nuevo: confirmar acción
+    async confirmAction(message, confirmText = 'Confirmar', cancelText = 'Cancelar') {
+        return new Promise((resolve) => {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10001;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 24px;
+                border-radius: 8px;
+                max-width: 400px;
+                margin: 20px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            `;
+            
+            modalContent.innerHTML = `
+                <p style="margin: 0 0 20px 0; font-size: 16px; color: #333;">${message}</p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="cancelBtn" style="
+                        padding: 8px 16px;
+                        border: 1px solid #ddd;
+                        background: white;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">${cancelText}</button>
+                    <button id="confirmBtn" style="
+                        padding: 8px 16px;
+                        border: none;
+                        background: #ef4444;
+                        color: white;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">${confirmText}</button>
+                </div>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Event listeners
+            modalContent.querySelector('#confirmBtn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                resolve(true);
+            });
+            
+            modalContent.querySelector('#cancelBtn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+                resolve(false);
+            });
+            
+            // Cerrar con ESC
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', handleEsc);
+                    resolve(false);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+        });
+    },
+
+    // Nuevo: validar formularios
+    validateForm(formData, rules) {
+        const errors = {};
+        
+        for (const [field, rule] of Object.entries(rules)) {
+            const value = formData[field];
+            
+            if (rule.required && (!value || value.toString().trim() === '')) {
+                errors[field] = `${rule.label || field} es requerido`;
+                continue;
+            }
+            
+            if (value && rule.minLength && value.toString().length < rule.minLength) {
+                errors[field] = `${rule.label || field} debe tener al menos ${rule.minLength} caracteres`;
+            }
+            
+            if (value && rule.maxLength && value.toString().length > rule.maxLength) {
+                errors[field] = `${rule.label || field} no puede tener más de ${rule.maxLength} caracteres`;
+            }
+            
+            if (value && rule.pattern && !rule.pattern.test(value)) {
+                errors[field] = rule.message || `${rule.label || field} tiene formato inválido`;
+            }
+            
+            if (value && rule.min && parseFloat(value) < rule.min) {
+                errors[field] = `${rule.label || field} debe ser mayor o igual a ${rule.min}`;
+            }
+            
+            if (value && rule.max && parseFloat(value) > rule.max) {
+                errors[field] = `${rule.label || field} debe ser menor o igual a ${rule.max}`;
+            }
+        }
+        
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        };
     }
 };
 
@@ -613,8 +980,57 @@ const GlobalHelpers = {
 GlobalHelpers.lastToastMessage = '';
 GlobalHelpers.lastToastTime = 0;
 
+// ========== INICIALIZACIÓN AUTOMÁTICA ==========
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM cargado, inicializando GlobalApiService...');
+    
+    // Verificar si hay sesión guardada
+    if (GlobalApiService.hasActiveSession()) {
+        console.log('👤 Sesión activa encontrada:', GlobalApiService.currentUser.username);
+        GlobalHelpers.showToast(`Bienvenido de vuelta, ${GlobalApiService.currentUser.username}`, 'info');
+    }
+    
+    // Despertar API en background si está disponible
+    setTimeout(() => {
+        GlobalApiService.wakeUpApi().catch(err => {
+            console.warn('⚠️ No se pudo despertar la API en background:', err.message);
+        });
+    }, 2000);
+});
+
+// ========== EVENTOS GLOBALES ==========
+window.addEventListener('online', () => {
+    console.log('🌐 Conexión restaurada');
+    GlobalHelpers.showToast('Conexión a internet restaurada', 'success');
+    GlobalApiService.apiAwake = false; // Reset estado para forzar nueva verificación
+});
+
+window.addEventListener('offline', () => {
+    console.log('📶 Sin conexión a internet');
+    GlobalHelpers.showToast('Sin conexión a internet', 'warning');
+});
+
 // ========== HACER DISPONIBLE GLOBALMENTE ==========
 window.GlobalApiService = GlobalApiService;
 window.GlobalHelpers = GlobalHelpers;
 
-console.log('✅ GlobalApiService ARREGLADO inicializado para TU API:', GlobalApiService.API_BASE_URL);
+console.log('✅ GlobalApiService COMPLETO inicializado para TU API:', GlobalApiService.API_BASE_URL);
+
+// ========== DEBUG UTILITIES (SOLO PARA DESARROLLO) ==========
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.debugApi = {
+        testConnection: () => GlobalApiService.wakeUpApi(),
+        testLogin: (username = 'admin', password = 'admin123') => 
+            GlobalApiService.login({ username, password }),
+        getMedicamentos: () => GlobalApiService.getMedicamentos(),
+        getApiStatus: () => ({
+            isAwake: GlobalApiService.apiAwake,
+            hasToken: !!GlobalApiService.authToken,
+            currentUser: GlobalApiService.currentUser
+        }),
+        clearSession: () => GlobalApiService.clearCurrentUser(),
+        showToast: (msg, type) => GlobalHelpers.showToast(msg, type)
+    };
+    
+    console.log('🛠️ Modo desarrollo detectado. Utilities disponibles en window.debugApi');
+}
