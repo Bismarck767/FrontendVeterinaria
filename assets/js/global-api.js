@@ -227,39 +227,38 @@ const GlobalApiService = {
         }
     },
 
-  async register(userData) {
-    console.log('📝 Registrando usuario con TU API:', userData.username);
-    
-    try {
-        await this.wakeUpApi();
+    async register(userData) {
+        console.log('📝 Registrando usuario con TU API:', userData.username);
         
-        const response = await this.apiRequestWithRetry(
-            `${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    Username: userData.username,   // ← CAMBIO: era NombreUsuario
-                    Password: userData.password,   // ← CAMBIO: era Contraseña
-                    Role: userData.role || 'employee'  // ← AGREGADO: rol opcional
-                })
-            }
-        );
+        try {
+            await this.wakeUpApi();
+            
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        NombreUsuario: userData.username,  // Tu DTO
+                        Contraseña: userData.password      // Tu DTO
+                    })
+                }
+            );
 
-        if (response.ok) {
-            const result = await response.text();
-            GlobalHelpers.showToast('Usuario registrado exitosamente', 'success');
-            return { success: true, message: result };
-        } else {
-            const error = await response.text();
-            return { success: false, message: error };
+            if (response.ok) {
+                const result = await response.text(); // Tu API devuelve string
+                GlobalHelpers.showToast('Usuario registrado exitosamente', 'success');
+                return { success: true, message: result };
+            } else {
+                const error = await response.text();
+                return { success: false, message: error };
+            }
+            
+        } catch (error) {
+            console.error('❌ Error en registro:', error);
+            return { success: false, message: 'Error de conexión con el servidor' };
         }
-        
-    } catch (error) {
-        console.error('❌ Error en registro:', error);
-        return { success: false, message: 'Error de conexión con el servidor' };
-    }
-},
+    },
 
     // ========== GESTIÓN DE USUARIO ==========
     setCurrentUser(userData, token) {
@@ -284,10 +283,12 @@ const GlobalApiService = {
         this.authToken = null;
         this.isAuthenticating = false;
         
-        // Limpiar localStorage
+        // Limpiar localStorage Y sessionStorage
         try {
             localStorage.removeItem('veterinary_user');
             localStorage.removeItem('veterinary_token');
+            sessionStorage.removeItem('welcome_shown');  // ← AGREGADO
+            sessionStorage.removeItem('api_wakeup_done'); // ← AGREGADO
         } catch (e) {
             console.warn('Error limpiando localStorage:', e);
         }
@@ -981,22 +982,33 @@ const GlobalHelpers = {
 GlobalHelpers.lastToastMessage = '';
 GlobalHelpers.lastToastTime = 0;
 
-// ========== INICIALIZACIÓN AUTOMÁTICA ==========
+// ========== INICIALIZACIÓN AUTOMÁTICA MEJORADA ==========
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM cargado, inicializando GlobalApiService...');
     
-    // Verificar si hay sesión guardada
+    // Verificar si hay sesión guardada PERO no mostrar toast repetidos
     if (GlobalApiService.hasActiveSession()) {
         console.log('👤 Sesión activa encontrada:', GlobalApiService.currentUser.username);
-        GlobalHelpers.showToast(`Bienvenido de vuelta, ${GlobalApiService.currentUser.username}`, 'info');
+        
+        // Solo mostrar bienvenida si no se ha mostrado antes en esta sesión
+        const welcomeShown = sessionStorage.getItem('welcome_shown');
+        if (!welcomeShown) {
+            GlobalHelpers.showToast(`Bienvenido de vuelta, ${GlobalApiService.currentUser.username}`, 'info');
+            sessionStorage.setItem('welcome_shown', 'true');
+        }
     }
     
-    // Despertar API en background si está disponible
-    setTimeout(() => {
-        GlobalApiService.wakeUpApi().catch(err => {
-            console.warn('⚠️ No se pudo despertar la API en background:', err.message);
-        });
-    }, 2000);
+    // Despertar API en background SOLO si no se ha hecho antes
+    const apiWakeupDone = sessionStorage.getItem('api_wakeup_done');
+    if (!apiWakeupDone) {
+        setTimeout(() => {
+            GlobalApiService.wakeUpApi().then(() => {
+                sessionStorage.setItem('api_wakeup_done', 'true');
+            }).catch(err => {
+                console.warn('⚠️ No se pudo despertar la API en background:', err.message);
+            });
+        }, 2000);
+    }
 });
 
 // ========== EVENTOS GLOBALES ==========
