@@ -227,38 +227,39 @@ const GlobalApiService = {
         }
     },
 
-    async register(userData) {
-        console.log('📝 Registrando usuario con TU API:', userData.username);
+  async register(userData) {
+    console.log('📝 Registrando usuario con TU API:', userData.username);
+    
+    try {
+        await this.wakeUpApi();
         
-        try {
-            await this.wakeUpApi();
-            
-            const response = await this.apiRequestWithRetry(
-                `${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        NombreUsuario: userData.username,  // Tu DTO
-                        Contraseña: userData.password      // Tu DTO
-                    })
-                }
-            );
-
-            if (response.ok) {
-                const result = await response.text(); // Tu API devuelve string
-                GlobalHelpers.showToast('Usuario registrado exitosamente', 'success');
-                return { success: true, message: result };
-            } else {
-                const error = await response.text();
-                return { success: false, message: error };
+        const response = await this.apiRequestWithRetry(
+            `${this.API_BASE_URL}${this.endpoints.usuarios}/registrar`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    Username: userData.username,   // ← CAMBIO: era NombreUsuario
+                    Password: userData.password,   // ← CAMBIO: era Contraseña
+                    Role: userData.role || 'employee'  // ← AGREGADO: rol opcional
+                })
             }
-            
-        } catch (error) {
-            console.error('❌ Error en registro:', error);
-            return { success: false, message: 'Error de conexión con el servidor' };
+        );
+
+        if (response.ok) {
+            const result = await response.text();
+            GlobalHelpers.showToast('Usuario registrado exitosamente', 'success');
+            return { success: true, message: result };
+        } else {
+            const error = await response.text();
+            return { success: false, message: error };
         }
-    },
+        
+    } catch (error) {
+        console.error('❌ Error en registro:', error);
+        return { success: false, message: 'Error de conexión con el servidor' };
+    }
+},
 
     // ========== GESTIÓN DE USUARIO ==========
     setCurrentUser(userData, token) {
