@@ -16,13 +16,22 @@
                 <h1>🏥 VeterinaryProject</h1>
             </div>
             <nav class="nav">
-                <ul class="nav-list">
-                    <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
-                    <li><a href="inventory.html" class="nav-link">Inventario</a></li>
-                    <li><a href="alerts.html" class="nav-link">Alertas</a></li>
-                    <li><a href="reports.html" class="nav-link">Reportes</a></li>
-                </ul>
-            </nav>
+    <!-- Botón hamburguesa (solo móvil) -->
+    <button class="nav-toggle" onclick="toggleMobileNav()">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+    
+    <!-- Lista de navegación -->
+    <ul class="nav-list" id="navList">
+        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+        <li><a href="inventory.html" class="nav-link">Inventario</a></li>
+        <li><a href="alerts.html" class="nav-link active">Alertas</a></li>
+        <li><a href="reports.html" class="nav-link">Reportes</a></li>
+    </ul>
+</nav>
+
             <div class="user-info">
                 <span id="userName">Usuario</span>
                 <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
@@ -177,6 +186,118 @@
             </section>
         </div>
     </main>
+<style>
+.nav {
+    position: relative;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 1rem;
+}
+
+/* Botón hamburguesa */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+}
+
+.hamburger-line {
+    width: 25px;
+    height: 3px;
+    background: #374151;
+    border-radius: 2px;
+    transition: 0.3s;
+}
+
+/* Lista de navegación */
+.nav-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2rem;
+}
+
+.nav-link {
+    display: block;
+    padding: 1rem 0;
+    text-decoration: none;
+    color: #6b7280;
+    font-weight: 500;
+    transition: color 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-link:hover {
+    color: #3b82f6;
+}
+
+.nav-link.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    /* Mostrar botón hamburguesa */
+    .nav-toggle {
+        display: flex;
+    }
+    
+    /* Ocultar lista por defecto */
+    .nav-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        flex-direction: column;
+        gap: 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    /* Mostrar lista cuando está activa */
+    .nav-list.active {
+        display: flex;
+    }
+    
+    /* Ajustar enlaces en móvil */
+    .nav-link {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        border-left: none;
+    }
+    
+    .nav-link.active {
+        background: #f3f4f6;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    /* Animación hamburguesa cuando está activo */
+    .nav-toggle.active .hamburger-line:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .nav-toggle.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .nav-toggle.active .hamburger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+    }
+}
+
+</style>
 
    <script src="../assets/js/global-api.js"></script>
 <script src="../assets/js/dashboard.js"></script>
