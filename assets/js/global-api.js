@@ -176,7 +176,7 @@ const GlobalApiService = {
                 this.setCurrentUser(userData, result.Token || 'api_token_' + Date.now());
                 
                 console.log('✅ Login exitoso con TU API');
-                GlobalHelpers.showToast(`Bienvenido ${userData.username}`, 'success');
+                GlobalHelpers.showToast(`Bienvenido `, 'success');
                 return { success: true, user: userData, token: this.authToken };
                 
             } else {
