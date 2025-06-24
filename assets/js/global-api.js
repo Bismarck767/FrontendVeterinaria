@@ -26,7 +26,7 @@ const GlobalApiService = {
         if (this.apiAwake) return true;
         
         console.log('☕ Despertando API (puede tomar 30-60 segundos)...');
-        GlobalHelpers.showToast('Conectando con el servidor...', 'info', 5000);
+       
         
         try {
             // Intentar ping simple
@@ -65,7 +65,7 @@ const GlobalApiService = {
             
             console.log('✅ API respondió con status:', response.status);
             this.apiAwake = true;
-            GlobalHelpers.showToast('Servidor conectado', 'success');
+           
             return true;
         } catch (error) {
             console.error('❌ API no responde después del timeout:', error);
