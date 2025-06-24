@@ -22,10 +22,7 @@ class AuthManager {
     checkExistingSession() {
         if (GlobalApiService.hasActiveSession()) {
             console.log('👤 Usuario ya logueado, redirigiendo...');
-            GlobalHelpers.showToast('Ya tienes una sesión activa', 'info');
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
+            
         }
     }
 
@@ -139,7 +136,7 @@ class AuthManager {
                 console.log('✅ Registro exitoso');
                 
                 setTimeout(() => {
-                    window.location.href = 'login.html';
+                    window.location.href = '../index.html';
                 }, 2000);
             } else {
                 this.showMessage(result.message || 'Error al crear la cuenta', 'error');

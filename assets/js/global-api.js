@@ -197,35 +197,39 @@ const GlobalApiService = {
         }
     },
 
-    async logout() {
-        console.log('🚪 Cerrando sesión con TU API...');
-        
-        try {
-            // Intentar logout en TU API
-            if (this.authToken) {
-                const response = await this.apiRequestWithRetry(
-                    `${this.API_BASE_URL}${this.endpoints.usuarios}/logout`,
-                    {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${this.authToken}`
-                        }
+  async logout() {
+    console.log('🚪 Cerrando sesión con TU API...');
+    
+    try {
+        // Intentar logout en TU API
+        if (this.authToken) {
+            const response = await this.apiRequestWithRetry(
+                `${this.API_BASE_URL}${this.endpoints.usuarios}/logout`,
+                {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.authToken}`
                     }
-                );
-                
-                if (response.ok) {
-                    const result = await response.text();
-                    console.log('✅ Logout API exitoso:', result);
                 }
+            );
+            
+            if (response.ok) {
+                const result = await response.text();
+                console.log('✅ Logout API exitoso:', result);
             }
-        } catch (error) {
-            console.warn('⚠️ Error en logout API (no crítico):', error);
-        } finally {
-            this.clearCurrentUser();
-            GlobalHelpers.showToast('Sesión cerrada', 'info');
         }
-    },
+    } catch (error) {
+        console.warn('⚠️ Error en logout API (no crítico):', error);
+    } finally {
+        this.clearCurrentUser();
+        GlobalHelpers.showToast('Sesión cerrada', 'info');
+
+        // Redirigir al usuario a index.html (en la raíz del proyecto)
+        window.location.href = 'index.html';
+    }
+},
+
 
  async register(userData) {
     console.log('📝 Registrando usuario con TU API:', userData.username);
