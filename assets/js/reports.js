@@ -10,7 +10,7 @@ class ReportsPage {
 
     async init() {
         console.log('🚀 Inicializando Reports...');
-        
+global-navigation        
         // Verificar que GlobalApiService esté disponible
         if (typeof GlobalApiService === 'undefined') {
             console.error('❌ GlobalApiService no disponible');

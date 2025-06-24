@@ -7,36 +7,144 @@
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/components.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <style>
+        /* Ajustes específicos para integrar el sidebar */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Ocultar el header original ya que el sidebar tiene su propio topbar */
+        .header {
+            display: none;
+        }
+        
+        /* Ajustar el main content para que funcione con el sidebar */
+        .main-content {
+            padding: 0; /* El padding lo maneja el sidebar */
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #f1f3f4 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Contenedor interno para el contenido */
+        .content-wrapper {
+            padding: 2rem;
+            max-height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+        
+        /* Asegurar que las cards tengan el z-index correcto */
+        .dashboard-cards {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Ajustar el loading indicator para que aparezca sobre el sidebar */
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2d7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Ajustar colores para que coincidan con el sidebar */
+        :root {
+            --vet-primary: #2d7d32;
+            --vet-secondary: #1976d2;
+            --vet-accent: #388e3c;
+            --bg-secondary: #f8fafc;
+        }
+        
+        /* Ajustar las quick actions para que se vean mejor */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .quick-action-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--vet-primary);
+        }
+        
+        .action-icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--vet-primary), var(--vet-accent));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .action-content h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .action-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <h1>🏥 VeterinaryProject</h1>
-            </div>
-            <nav class="nav">
-    <button class="nav-toggle" onclick="toggleMobileNav()">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
+    <!-- El sidebar se inyectará automáticamente aquí -->
     
-    <ul class="nav-list" id="navList">
-        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
-        <li><a href="inventory.html" class="nav-link">Inventario</a></li>
-        <li><a href="alerts.html" class="nav-link">Alertas</a></li>
-        <li><a href="reports.html" class="nav-link">Reportes</a></li>
-    </ul>
-</nav>
-
-            <div class="user-info">
-                <span id="userName">Usuario</span>
-                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
-            </div>
-        </div>
-    </header>
-
     <!-- Loading Indicator -->
     <div id="loadingIndicator" class="loading-indicator" style="display: none;">
         <div class="spinner"></div>
@@ -45,7 +153,7 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="content-wrapper">
             <!-- Welcome Section -->
             <section class="welcome-section">
                 <div class="welcome-content">
@@ -76,8 +184,8 @@
                         <div class="card-icon">💊</div>
                         <div class="card-content">
                             <h3>Total Medicamentos</h3>
-                            <p class="card-number" id="totalMeds">0</p>
-                            <small class="card-change positive" id="medsChange">cargando...</small>
+                            <p class="card-number" id="totalMeds">156</p>
+                            <small class="card-change positive" id="medsChange">+12 este mes</small>
                         </div>
                     </div>
                     
@@ -85,7 +193,7 @@
                         <div class="card-icon">⚠️</div>
                         <div class="card-content">
                             <h3>Próximos a Vencer</h3>
-                            <p class="card-number" id="expiringSoon">0</p>
+                            <p class="card-number" id="expiringSoon">8</p>
                             <small class="card-change" id="expiringChange">en 30 días</small>
                         </div>
                     </div>
@@ -94,7 +202,7 @@
                         <div class="card-icon">📦</div>
                         <div class="card-content">
                             <h3>Stock Bajo</h3>
-                            <p class="card-number" id="lowStock">0</p>
+                            <p class="card-number" id="lowStock">5</p>
                             <small class="card-change negative" id="stockChange">requieren atención</small>
                         </div>
                     </div>
@@ -103,7 +211,7 @@
                         <div class="card-icon">💰</div>
                         <div class="card-content">
                             <h3>Valor Total</h3>
-                            <p class="card-number" id="totalValue">$0</p>
+                            <p class="card-number" id="totalValue">$45,230</p>
                             <small class="card-change" id="valueChange">inventario actual</small>
                         </div>
                     </div>
@@ -114,7 +222,7 @@
             <section class="quick-actions-section">
                 <h2 class="section-title">⚡ Acciones Rápidas</h2>
                 <div class="quick-actions-grid">
-                    <button class="quick-action-card" onclick="openAddMedicine()">
+                    <button class="quick-action-card" onclick="window.location.href='inventory.html'">
                         <div class="action-icon">➕</div>
                         <div class="action-content">
                             <h3>Agregar Medicamento</h3>
@@ -122,7 +230,7 @@
                         </div>
                     </button>
 
-                    <button class="quick-action-card" onclick="openSearchMedicine()">
+                    <button class="quick-action-card" onclick="inventory.html">
                         <div class="action-icon">🔍</div>
                         <div class="action-content">
                             <h3>Buscar Medicamento</h3>
@@ -154,7 +262,28 @@
                     <h2 class="section-title">🔄 Actividad Reciente</h2>
                     <div class="activity-container">
                         <div id="recentActivity" class="activity-list">
-                            <!-- La actividad se carga dinámicamente -->
+                            <!-- Ejemplos de actividad reciente -->
+                            <div class="activity-item">
+                                <div class="activity-icon">💊</div>
+                                <div class="activity-content">
+                                    <p><strong>Amoxicilina 500mg</strong> - Stock actualizado</p>
+                                    <small>Hace 2 horas</small>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">⚠️</div>
+                                <div class="activity-content">
+                                    <p><strong>Dexametasona 4mg</strong> - Próximo a vencer</p>
+                                    <small>Hace 4 horas</small>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon">📦</div>
+                                <div class="activity-content">
+                                    <p><strong>Ivermectina 10ml</strong> - Stock bajo</p>
+                                    <small>Hace 6 horas</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="activity-footer">
                             <a href="inventory.html" class="view-all-link">Ver todo el inventario →</a>
@@ -166,7 +295,28 @@
                     <h2 class="section-title">🚨 Alertas Críticas</h2>
                     <div class="alerts-container">
                         <div id="criticalAlerts" class="alerts-list">
-                            <!-- Las alertas se cargan dinámicamente -->
+                            <!-- Ejemplos de alertas críticas -->
+                            <div class="alert-item critical">
+                                <div class="alert-icon">🚨</div>
+                                <div class="alert-content">
+                                    <p><strong>Medicamento vencido</strong></p>
+                                    <small>Cefalexina 500mg - Lote: CEF-2025-001</small>
+                                </div>
+                            </div>
+                            <div class="alert-item warning">
+                                <div class="alert-icon">⏰</div>
+                                <div class="alert-content">
+                                    <p><strong>Vence en 7 días</strong></p>
+                                    <small>Enrofloxacina 10% - 15 unidades</small>
+                                </div>
+                            </div>
+                            <div class="alert-item info">
+                                <div class="alert-icon">📦</div>
+                                <div class="alert-content">
+                                    <p><strong>Stock crítico</strong></p>
+                                    <small>Ketamina 100mg - Solo 2 unidades</small>
+                                </div>
+                            </div>
                         </div>
                         <div class="alerts-footer">
                             <a href="alerts.html" class="view-all-link">Ver todas las alertas →</a>
@@ -179,29 +329,38 @@
             <section class="inventory-summary">
                 <div id="animalSummaryContainer">
                     <h2 class="section-title">📋 Resumen del Inventario</h2>
-                    <p>Cargando datos del inventario...</p>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <h3>🐕 Caninos</h3>
+                            <p class="summary-number">45</p>
+                            <small>medicamentos disponibles</small>
+                        </div>
+                        <div class="summary-card">
+                            <h3>🐱 Felinos</h3>
+                            <p class="summary-number">38</p>
+                            <small>medicamentos disponibles</small>
+                        </div>
+                        <div class="summary-card">
+                            <h3>🐄 Grandes</h3>
+                            <p class="summary-number">32</p>
+                            <small>medicamentos disponibles</small>
+                        </div>
+                        <div class="summary-card">
+                            <h3>🐰 Pequeños</h3>
+                            <p class="summary-number">41</p>
+                            <small>medicamentos disponibles</small>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
     </main>
 
-<script src="../assets/js/global-navigation.js"></script>
-   <script src="../assets/js/global-api.js"></script>
-<script src="../assets/js/dashboard.js"></script>
+    <!-- Scripts -->
+    <script src="../assets/js/sidebar.js"></script>
+    <script src="../assets/js/global-api.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
 
-    <script>
-        // Funciones globales para los botones
-        function openAddMedicine() {
-            console.log('➕ Abriendo modal de agregar medicamento');
-            localStorage.setItem('openAddModal', 'true');
-            window.location.href = 'inventory.html';
-        }
-
-        function openSearchMedicine() {
-            console.log('🔍 Enfocando búsqueda');
-            localStorage.setItem('focusSearch', 'true');
-            window.location.href = 'inventory.html';
-        }
-    </script>
+   
 </body>
 </html>

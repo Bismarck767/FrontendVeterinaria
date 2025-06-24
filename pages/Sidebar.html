@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeterinaryProject - Sistema con Sidebar</title>
+    <style>
+        /* ========== VARIABLES CSS VETERINARIAS ========== */
+        :root {
+            /* Colores principales */
+            --vet-primary: #2d7d32;
+            --vet-primary-light: #e8f5e8;
+            --vet-primary-dark: #1b5e20;
+            --vet-secondary: #1976d2;
+            --vet-secondary-light: #e3f2fd;
+            
+            /* Colores de estado médicos */
+            --vet-success: #388e3c;
+            --vet-warning: #f57c00;
+            --vet-danger: #d32f2f;
+            --vet-info: #1976d2;
+            
+            /* Sidebar colors */
+            --sidebar-bg: #1e293b;
+            --sidebar-bg-light: #334155;
+            --sidebar-text: #cbd5e1;
+            --sidebar-text-active: #ffffff;
+            --sidebar-border: #374151;
+            --sidebar-hover: #475569;
+            --sidebar-active: var(--vet-primary);
+            
+            /* Layout */
+            --sidebar-width: 280px;
+            --sidebar-width-collapsed: 70px;
+            --topbar-height: 70px;
+            
+            /* Fondos y textos */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            
+            /* Sombras y efectos */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            
+            /* Transiciones */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+            
+            /* Border radius */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        /* ========== RESET Y BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ========== LAYOUT PRINCIPAL ========== */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            transform: translateX(0);
+            transition: all var(--transition-normal);
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-width-collapsed);
+        }
+
+        .sidebar.mobile-hidden {
+            transform: translateX(-100%);
+        }
+
+        /* ========== SIDEBAR HEADER ========== */
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-height: var(--topbar-height);
+        }
+
+        .sidebar-logo {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--sidebar-text-active);
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity var(--transition-normal);
+        }
+
+        .sidebar.collapsed .sidebar-title {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* ========== SIDEBAR NAVIGATION ========== */
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            padding: 0 1.5rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sidebar-text);
+            opacity: 0.7;
+            transition: opacity var(--transition-normal);
+        }
+
+        .sidebar.collapsed .nav-section-title {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin: 0.25rem 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.5rem;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--sidebar-active);
+            transform: scaleY(0);
+            transition: transform var(--transition-fast);
+        }
+
+        .nav-link:hover {
+            background: var(--sidebar-hover);
+            color: var(--sidebar-text-active);
+        }
+
+        .nav-link.active {
+            background: rgba(45, 125, 50, 0.1);
+            color: var(--sidebar-text-active);
+            border-right: 3px solid var(--sidebar-active);
+        }
+
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-text {
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity var(--transition-normal);
+        }
+
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* Badge para notificaciones */
+        .nav-badge {
+            background: var(--vet-danger);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 10px;
+            margin-left: auto;
+            min-width: 20px;
+            text-align: center;
+            transition: opacity var(--transition-normal);
+        }
+
+        .sidebar.collapsed .nav-badge {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* ========== SIDEBAR FOOTER ========== */
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--sidebar-border);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--sidebar-bg-light);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--vet-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+            opacity: 1;
+            transition: opacity var(--transition-normal);
+        }
+
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--sidebar-text-active);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--sidebar-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-normal);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-width-collapsed);
+        }
+
+        /* ========== TOPBAR ========== */
+        .topbar {
+            height: var(--topbar-height);
+            background: var(--bg-primary);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .topbar-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background: var(--vet-danger);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+
+        /* ========== CONTENT AREA ========== */
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 0 1rem;
+            }
+
+            .content-area {
+                padding: 1rem;
+            }
+
+            /* Overlay para móvil */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                opacity: 0;
+                visibility: hidden;
+                transition: all var(--transition-normal);
+            }
+
+            .sidebar-overlay.active {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+            }
+
+            .topbar {
+                padding: 0 0.75rem;
+            }
+
+            .content-area {
+                padding: 0.75rem;
+            }
+
+            .page-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* ========== SCROLLBAR PERSONALIZADO ========== */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--sidebar-bg);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--sidebar-border);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--sidebar-hover);
+        }
+
+        /* ========== ANIMACIONES ========== */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-area > * {
+            animation: slideIn 0.4s ease-out;
+        }
+
+        /* ========== ESTADOS ESPECIALES ========== */
+        .nav-link.loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .nav-link.loading .nav-icon::after {
+            content: "⏳";
+            position: absolute;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ========== TOOLTIPS PARA SIDEBAR COLAPSADO ========== */
+        .sidebar.collapsed .nav-link {
+            position: relative;
+        }
+
+        .sidebar.collapsed .nav-link::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-fast);
+            margin-left: 1rem;
+            z-index: 1001;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar.collapsed .nav-link:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========== MODO OSCURO (OPCIONAL) ========== */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #94a3b8;
+            }
+        }
+
+        /* ========== ACCESIBILIDAD ========== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .nav-link:focus,
+        .sidebar-toggle:focus,
+        .topbar-btn:focus {
+            outline: 2px solid var(--vet-primary);
+            outline-offset: 2px;
+        }
+
+        /* ========== PRINT STYLES ========== */
+        @media print {
+            .sidebar,
+            .topbar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay para móvil -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Layout principal -->
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Header del sidebar -->
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🏥</div>
+                <div class="sidebar-title">VeterinaryProject</div>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="sidebar-nav">
+                <!-- Sección Principal -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="pages/dashboard.html" class="nav-link active" data-tooltip="Dashboard" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">📊</span>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="pages/inventory.html" class="nav-link" data-tooltip="Inventario" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">💊</span>
+                                <span class="nav-text">Inventario</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="pages/alerts.html" class="nav-link" data-tooltip="Alertas" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">🚨</span>
+                                <span class="nav-text">Alertas</span>
+                                <span class="nav-badge">3</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Sección Reportes -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Análisis</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="pages/reports.html" class="nav-link" data-tooltip="Reportes" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">📈</span>
+                                <span class="nav-text">Reportes</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="pages/analytics.html" class="nav-link" data-tooltip="Análisis" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">📊</span>
+                                <span class="nav-text">Análisis</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Sección Configuración -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="pages/settings.html" class="nav-link" data-tooltip="Configuración" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">⚙️</span>
+                                <span class="nav-text">Configuración</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="pages/help.html" class="nav-link" data-tooltip="Ayuda" onclick="return handleNavigation(event, this)">
+                                <span class="nav-icon">❓</span>
+                                <span class="nav-text">Ayuda</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Footer del sidebar -->
+            <div class="sidebar-footer">
+                <div class="user-profile" onclick="toggleUserMenu()">
+                    <div class="user-avatar">👨‍⚕️</div>
+                    <div class="user-info">
+                        <div class="user-name">Dr. Juan Pérez</div>
+                        <div class="user-role">Veterinario</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Barra superior -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn" onclick="showNotifications()" aria-label="Notificaciones">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="notification-badge"></span>
+                    </button>
+                    <button class="topbar-btn" onclick="handleLogout()" aria-label="Cerrar sesión">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16,17 21,12 16,7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Área de contenido -->
+            <div class="content-area">
+                <!-- AQUÍ VA EL CONTENIDO DE CADA PÁGINA -->
+                
+                <!-- Hero Section para el index -->
+                <div style="text-align: center; padding: 4rem 0;">
+                    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: var(--vet-primary);">
+                        🏥 Sistema de Inventario Veterinario
+                    </h1>
+                    <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem;">
+                        Gestiona eficientemente el inventario de medicamentos y suministros de tu clínica veterinaria con nuestro sistema integral y fácil de usar.
+                    </p>
+                    
+                    <!-- Cards de características -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem;">
+                        <div style="background: var(--bg-primary); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Dashboard Intuitivo</h3>
+                            <p style="color: var(--text-secondary);">Visualiza el estado completo de tu inventario con métricas en tiempo real.</p>
+                        </div>
+                        
+                        <div style="background: var(--bg-primary); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">💊</div>
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Gestión de Medicamentos</h3>
+                            <p style="color: var(--text-secondary);">Control completo de stock, fechas de vencimiento y proveedores.</p>
+                        </div>
+                        
+                        <div style="background: var(--bg-primary); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🚨</div>
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Sistema de Alertas</h3>
+                            <p style="color: var(--text-secondary);">Notificaciones automáticas sobre vencimientos y stock bajo.</p>
+                        </div>
+                        
+                        <div style="background: var(--bg-primary); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Reportes Detallados</h3>
+                            <p style="color: var(--text-secondary);">Análisis completo para mejores decisiones de negocio.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ========== VARIABLES GLOBALES ==========
+        let sidebarCollapsed = false;
+        let isMobile = window.innerWidth <= 768;
+        let currentUser = {
+            name: 'Dr. Juan Pérez',
+            role: 'Veterinario',
+            avatar: '👨‍⚕️'
+        };
+
+        // ========== FUNCIONES DE SIDEBAR ==========
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (isMobile) {
+                // En móvil: mostrar/ocultar sidebar
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                // En desktop: colapsar/expandir sidebar
+                sidebar.classList.toggle('collapsed');
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                // Guardar preferencia
+                localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
+            }
+            
+            console.log(isMobile ? 'Sidebar móvil toggled' : `Sidebar ${sidebarCollapsed ? 'colapsado' : 'expandido'}`);
+        }
+
+        // Cerrar sidebar en móvil al hacer clic en overlay
+        document.getElementById('sidebarOverlay').addEventListener('click', () => {
+            if (isMobile) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+            }
+        });
+
+        // ========== NAVEGACIÓN ==========
+        function handleNavigation(event, link) {
+            // Verificar autenticación (puedes personalizar esta lógica)
+            if (!currentUser) {
+                event.preventDefault();
+                showToast('Debe iniciar sesión para acceder a esta página', 'warning');
+                window.location.href = 'pages/login.html';
+                return false;
+            }
+
+            // Agregar estado de loading
+            link.classList.add('loading');
+            
+            // Actualizar enlace activo
+            setActiveNavigation(link.href);
+            
+            // Actualizar título de página
+            const pageTitle = link.querySelector('.nav-text').textContent;
+            document.querySelector('.page-title').textContent = pageTitle;
+            
+            // Cerrar sidebar en móvil
+            if (isMobile) {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+            }
+
+            // Simular carga (remover en producción)
+            setTimeout(() => {
+                link.classList.remove('loading');
+            }, 500);
+
+            return true;
+        }
+
+        function setActiveNavigation(currentUrl) {
+            // Remover todas las clases active
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Encontrar y activar el enlace correspondiente
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => {
+                if (link.href === currentUrl || link.href.includes(currentUrl)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // ========== FUNCIONES DE TOPBAR ==========
+        function showNotifications() {
+            // Aquí implementarías el sistema de notificaciones
+            showToast('Tienes 3 notificaciones nuevas', 'info');
+            console.log('Mostrando notificaciones...');
+        }
+
+        function toggleUserMenu() {
+            // Aquí implementarías el menú de usuario
+            showToast('Menú de usuario clicked', 'info');
+            console.log('Toggle user menu...');
+        }
+
+        function handleLogout() {
+            if (confirm('¿Estás seguro que quieres cerrar sesión?')) {
+                showToast('Cerrando sesión...', 'info');
+                
+                // Limpiar datos de usuario
+                currentUser = null;
+                
+                // Redirigir al login
+                setTimeout(() => {
+                    window.location.href = 'pages/login.html';
+                }, 1000);
+            }
+        }
+
+        // ========== SISTEMA DE TOASTS ==========
+        function showToast(message, type = 'info', duration = 3000) {
+            // Crear container si no existe
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                `;
+                document.body.appendChild(toastContainer);
+            }
+
+            // Crear toast
+            const toast = document.createElement('div');
+            const colors = {
+                'success': '#10b981',
+                'error': '#ef4444',
+                'warning': '#f59e0b',
+                'info': '#3b82f6'
+            };
+
+            toast.style.cssText = `
+                background: ${colors[type] || colors['info']};
+                color: white;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-weight: 500;
+                min-width: 300px;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            `;
+
+            // Agregar icono según tipo
+            const icons = {
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+
+            toast.innerHTML = `
+                <span style="font-size: 1.1rem;">${icons[type] || icons['info']}</span>
+                <span>${message}</span>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Animar entrada
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Animar salida
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // ========== RESPONSIVE HANDLING ==========
+        function handleResize() {
+            const newIsMobile = window.innerWidth <= 768;
+            
+            if (newIsMobile !== isMobile) {
+                isMobile = newIsMobile;
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                if (isMobile) {
+                    // Cambió a móvil
+                    sidebar.classList.remove('collapsed');
+                    sidebar.classList.add('mobile-hidden');
+                    overlay.classList.remove('active');
+                } else {
+                    // Cambió a desktop
+                    sidebar.classList.remove('mobile-hidden', 'mobile-open');
+                    overlay.classList.remove('active');
+                    
+                    // Restaurar estado colapsado si estaba guardado
+                    const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                    if (savedCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        sidebarCollapsed = true;
+                    }
+                }
+                
+                console.log(`Modo cambiado a: ${isMobile ? 'móvil' : 'desktop'}`);
+            }
+        }
+
+        // ========== INICIALIZACIÓN ==========
+        function initSidebar() {
+            console.log('🏥 Inicializando VeterinaryProject Sidebar...');
+            
+            // Detectar dispositivo inicial
+            isMobile = window.innerWidth <= 768;
+            
+            // Configurar estado inicial
+            const sidebar = document.getElementById('sidebar');
+            
+            if (isMobile) {
+                sidebar.classList.add('mobile-hidden');
+            } else {
+                // Restaurar estado colapsado guardado
+                const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (savedCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    sidebarCollapsed = true;
+                }
+            }
+            
+            // Configurar enlace activo basado en URL actual
+            setActiveNavigationFromURL();
+            
+            // Event listeners
+            window.addEventListener('resize', debounce(handleResize, 250));
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + B para toggle sidebar
+                if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+                
+                // Escape para cerrar sidebar en móvil
+                if (e.key === 'Escape' && isMobile) {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('sidebarOverlay');
+                    if (sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        overlay.classList.remove('active');
+                    }
+                }
+            });
+            
+            console.log('✅ Sidebar inicializado correctamente');
+            
+            // Mostrar mensaje de bienvenida
+            setTimeout(() => {
+                showToast('¡Bienvenido al Sistema Veterinario! 🏥', 'success');
+            }, 500);
+        }
+
+        function setActiveNavigationFromURL() {
+            const currentPath = window.location.pathname;
+            const currentPage = currentPath.split('/').pop();
+            
+            // Mapear páginas a enlaces
+            const pageMap = {
+                'dashboard.html': 'dashboard',
+                'inventory.html': 'inventory',
+                'alerts.html': 'alerts',
+                'reports.html': 'reports',
+                'analytics.html': 'analytics',
+                'settings.html': 'settings',
+                'help.html': 'help',
+                'index.html': 'dashboard',
+                '': 'dashboard'
+            };
+            
+            const targetSection = pageMap[currentPage] || 'dashboard';
+            
+            // Actualizar enlace activo
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.href.includes(targetSection)) {
+                    link.classList.add('active');
+                    
+                    // Actualizar título de página
+                    const pageTitle = link.querySelector('.nav-text').textContent;
+                    document.querySelector('.page-title').textContent = pageTitle;
+                }
+            });
+        }
+
+        // ========== UTILIDADES ==========
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // ========== FUNCIONES PARA INTEGRACIÓN CON OTRAS PÁGINAS ==========
+        
+        // Función para actualizar información de usuario
+        function updateUserInfo(userData) {
+            currentUser = userData;
+            
+            const userAvatar = document.querySelector('.user-avatar');
+            const userName = document.querySelector('.user-name');
+            const userRole = document.querySelector('.user-role');
+            
+            if (userAvatar) userAvatar.textContent = userData.avatar || '👨‍⚕️';
+            if (userName) userName.textContent = userData.name || 'Usuario';
+            if (userRole) userRole.textContent = userData.role || 'Empleado';
+            
+            console.log('✅ Información de usuario actualizada:', userData);
+        }
+
+        // Función para actualizar contador de notificaciones
+        function updateNotificationBadge(count) {
+            const badges = document.querySelectorAll('.nav-badge');
+            badges.forEach(badge => {
+                if (count > 0) {
+                    badge.textContent = count > 99 ? '99+' : count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+            
+            const notificationBadge = document.querySelector('.notification-badge');
+            if (notificationBadge) {
+                notificationBadge.style.display = count > 0 ? 'block' : 'none';
+            }
+        }
+
+        // Función para cambiar tema (día/noche)
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('darkTheme', isDark);
+            showToast(`Tema ${isDark ? 'oscuro' : 'claro'} activado`, 'info');
+        }
+
+        // Función para mostrar indicador de carga en la página
+        function showPageLoading() {
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                contentArea.style.opacity = '0.6';
+                contentArea.style.pointerEvents = 'none';
+            }
+        }
+
+        function hidePageLoading() {
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                contentArea.style.opacity = '1';
+                contentArea.style.pointerEvents = 'auto';
+            }
+        }
+
+        // ========== HACER FUNCIONES DISPONIBLES GLOBALMENTE ==========
+        window.toggleSidebar = toggleSidebar;
+        window.handleNavigation = handleNavigation;
+        window.setActiveNavigation = setActiveNavigation;
+        window.showNotifications = showNotifications;
+        window.toggleUserMenu = toggleUserMenu;
+        window.handleLogout = handleLogout;
+        window.showToast = showToast;
+        window.updateUserInfo = updateUserInfo;
+        window.updateNotificationBadge = updateNotificationBadge;
+        window.toggleTheme = toggleTheme;
+        window.showPageLoading = showPageLoading;
+        window.hidePageLoading = hidePageLoading;
+
+        // ========== INICIALIZACIÓN AUTOMÁTICA ==========
+        document.addEventListener('DOMContentLoaded', initSidebar);
+
+        // Inicializar inmediatamente si el DOM ya está listo
+        if (document.readyState !== 'loading') {
+            initSidebar();
+        }
+
+        console.log('🏥 VeterinaryProject Sidebar Script cargado correctamente');
+    </script>
+</body>
+</html>

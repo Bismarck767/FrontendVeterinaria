@@ -7,39 +7,63 @@
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/components.css">
     <link rel="stylesheet" href="../assets/css/alerts.css">
+    <style>
+        /* Ajustes específicos para integrar el sidebar */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Ocultar el header original ya que el sidebar tiene su propio topbar */
+        .header {
+            display: none;
+        }
+        
+        /* Ajustar el main content para que funcione con el sidebar */
+        .main-content {
+            padding: 0; /* El padding lo maneja el sidebar */
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #f1f3f4 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Contenedor interno para el contenido */
+        .content-wrapper {
+            padding: 2rem;
+        }
+        
+        /* Ajustar el before del main-content */
+        .main-content::before {
+            display: none; /* El sidebar ya maneja la barra superior */
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+        
+        /* Asegurar que las alertas tengan el z-index correcto */
+        .alert-category {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Ajustar colores para que coincidan con el sidebar */
+        :root {
+            --vet-primary: #2d7d32;
+            --vet-secondary: #1976d2;
+            --vet-accent: #388e3c;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <h1>🏥 VeterinaryProject</h1>
-            </div>
-       <nav class="nav">
-    <button class="nav-toggle" onclick="toggleMobileNav()">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
+    <!-- El sidebar se inyectará automáticamente aquí -->
     
-    <ul class="nav-list" id="navList">
-        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
-        <li><a href="inventory.html" class="nav-link">Inventario</a></li>
-        <li><a href="alerts.html" class="nav-link">Alertas</a></li>
-        <li><a href="reports.html" class="nav-link">Reportes</a></li>
-    </ul>
-</nav>
-
-            <div class="user-info">
-                <span id="userName">Usuario</span>
-                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
-            </div>
-        </div>
-    </header>
-
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="content-wrapper">
             <!-- Page Header -->
             <div class="page-header">
                 <div class="page-title-section">
@@ -137,7 +161,33 @@
                         <p class="category-description">Requieren atención inmediata</p>
                     </div>
                     <div class="alert-list" id="criticalAlertsList">
-                        <!-- Las alertas críticas se cargan aquí -->
+                        <!-- Ejemplo de alerta crítica -->
+                        <div class="alert-item high">
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <div class="alert-type">
+                                        <span class="alert-icon">💊</span>
+                                        <span class="alert-title">Medicamento Vencido</span>
+                                    </div>
+                                    <span class="alert-priority priority-high">Alta</span>
+                                </div>
+                                <p class="alert-message">
+                                    El medicamento Amoxicilina 500mg ha vencido el 15/06/2025. 
+                                    Retire inmediatamente del inventario para evitar riesgos.
+                                </p>
+                                <div class="alert-additional-info">
+                                    <strong>Lote:</strong> AMX-2025-001 | <strong>Cantidad:</strong> 50 unidades | <strong>Proveedor:</strong> VetMed Lab
+                                </div>
+                                <div class="alert-meta">
+                                    <span class="alert-time">Hace 2 horas</span>
+                                    <span class="alert-medicine">Amoxicilina 500mg</span>
+                                </div>
+                            </div>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn view" title="Ver detalles">👁️</button>
+                                <button class="alert-action-btn resolve" title="Marcar como resuelto">✅</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -152,7 +202,33 @@
                         <p class="category-description">Próximos a vencer en los siguientes 30 días</p>
                     </div>
                     <div class="alert-list" id="expiringAlertsList">
-                        <!-- Las alertas de vencimiento se cargan aquí -->
+                        <!-- Ejemplo de alerta de vencimiento -->
+                        <div class="alert-item medium">
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <div class="alert-type">
+                                        <span class="alert-icon">⏰</span>
+                                        <span class="alert-title">Vencimiento Próximo</span>
+                                    </div>
+                                    <span class="alert-priority priority-medium">Media</span>
+                                </div>
+                                <p class="alert-message">
+                                    El medicamento Dexametasona 4mg vence en 15 días (09/07/2025). 
+                                    Considere su uso prioritario o contacte al proveedor.
+                                </p>
+                                <div class="alert-additional-info">
+                                    <strong>Lote:</strong> DEX-2025-003 | <strong>Cantidad:</strong> 30 unidades | <strong>Ubicación:</strong> Estante A-3
+                                </div>
+                                <div class="alert-meta">
+                                    <span class="alert-time">Hace 1 día</span>
+                                    <span class="alert-medicine">Dexametasona 4mg</span>
+                                </div>
+                            </div>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn view" title="Ver detalles">👁️</button>
+                                <button class="alert-action-btn resolve" title="Marcar como resuelto">✅</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -167,7 +243,33 @@
                         <p class="category-description">Medicamentos que necesitan reabastecimiento</p>
                     </div>
                     <div class="alert-list" id="stockAlertsList">
-                        <!-- Las alertas de stock se cargan aquí -->
+                        <!-- Ejemplo de alerta de stock bajo -->
+                        <div class="alert-item low">
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <div class="alert-type">
+                                        <span class="alert-icon">📦</span>
+                                        <span class="alert-title">Stock Bajo</span>
+                                    </div>
+                                    <span class="alert-priority priority-low">Baja</span>
+                                </div>
+                                <p class="alert-message">
+                                    Quedan solo 5 unidades de Ivermectina 10ml. 
+                                    Stock por debajo del mínimo recomendado (15 unidades).
+                                </p>
+                                <div class="alert-additional-info">
+                                    <strong>Stock actual:</strong> 5 unidades | <strong>Mínimo:</strong> 15 unidades | <strong>Última compra:</strong> 15/05/2025
+                                </div>
+                                <div class="alert-meta">
+                                    <span class="alert-time">Hace 3 horas</span>
+                                    <span class="alert-medicine">Ivermectina 10ml</span>
+                                </div>
+                            </div>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn view" title="Ver detalles">👁️</button>
+                                <button class="alert-action-btn resolve" title="Marcar como resuelto">✅</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -182,15 +284,43 @@
                         <p class="category-description">Alertas marcadas como resueltas</p>
                     </div>
                     <div class="alert-list" id="resolvedAlertsList">
-                        <!-- Las alertas resueltas se cargan aquí -->
+                        <!-- Ejemplo de alerta resuelta -->
+                        <div class="alert-item resolved">
+                            <div class="alert-content">
+                                <div class="alert-header">
+                                    <div class="alert-type">
+                                        <span class="alert-icon">✅</span>
+                                        <span class="alert-title">Stock Reabastecido</span>
+                                    </div>
+                                    <span class="alert-priority priority-low">Resuelta</span>
+                                </div>
+                                <p class="alert-message">
+                                    Se reabastecieron 100 unidades de Cefalexina 500mg. 
+                                    Stock ahora en niveles normales.
+                                </p>
+                                <div class="alert-additional-info">
+                                    <strong>Acción realizada:</strong> Compra de emergencia | <strong>Nuevo stock:</strong> 120 unidades | <strong>Resuelto por:</strong> Dr. Juan Pérez
+                                </div>
+                                <div class="alert-meta">
+                                    <span class="alert-time">Resuelto hace 2 horas</span>
+                                    <span class="alert-medicine">Cefalexina 500mg</span>
+                                </div>
+                            </div>
+                            <div class="alert-actions">
+                                <button class="alert-action-btn view" title="Ver detalles">👁️</button>
+                                <button class="alert-action-btn unresolve" title="Reactivar">🔄</button>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>
         </div>
     </main>
-<script src="../assets/js/global-navigation.js"></script>
+
     <!-- Scripts -->
+    <script src="../assets/js/sidebar.js"></script>
     <script src="../assets/js/global-api.js"></script>
     <script src="../assets/js/alerts.js"></script>
+  
 </body>
 </html>

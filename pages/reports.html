@@ -57,6 +57,7 @@
             </div>
 
             <!-- Report Controls -->
+             <!-- Report Controls -->
             <div class="report-controls">
                 <div class="controls-card">
                     <h3>🔧 Configuración del Reporte</h3>
@@ -86,6 +87,7 @@
                     </div>
                 </div>
             </div>
+
 
             <!-- Quick Reports -->
             <div class="quick-reports">
@@ -145,36 +147,102 @@
             </div>
         </div>
     </main>
-<script src="../assets/js/global-navigation.js"></script>
+ <script src="../assets/js/sidebar.js"></script>
    <script src="../assets/js/global-api.js"></script>
 <script src="../assets/js/reports.js"></script>
 
     <style>
-        /* Loading Indicator */
+    /* Ajustes específicos para integrar el sidebar */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Ocultar el header original ya que el sidebar tiene su propio topbar */
+        .header {
+            display: none;
+        }
+        
+        /* Ajustar el main content para que funcione con el sidebar */
+        .main-content {
+            padding: 0; /* El padding lo maneja el sidebar */
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #f1f3f4 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Contenedor interno para el contenido */
+        .content-wrapper {
+            padding: 2rem;
+            max-height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+        
+        /* Ajustar el loading indicator para que aparezca sobre el sidebar */
         .loading-indicator {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 10000;
             background: rgba(255, 255, 255, 0.95);
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            z-index: 9999;
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 1rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2d7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Ajustar colores para que coincidan con el sidebar */
+        :root {
+            --vet-primary: #2d7d32;
+            --vet-secondary: #1976d2;
+            --vet-accent: #388e3c;
+            --bg-secondary: #f8fafc;
+            --primary-color: #2d7d32;
+            --secondary-color: #1976d2;
+            --success-color: #388e3c;
+            --warning-color: #f57c00;
+            --danger-color: #d32f2f;
+            --dark-color: #1f2937;
+            --text-color: #374151;
+            --text-light: #6b7280;
+            --light-color: #f9fafb;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Loading Indicator */
+        .loading-indicator {
             font-weight: 500;
             color: var(--dark-color);
         }
 
-        /* Main Content */
-        .main-content { 
-            padding: 2rem; 
-            background: var(--light-color); 
-            min-height: calc(100vh - 64px);
-        }
-        
+        /* Page Header */
         .page-header { 
             margin-bottom: 2rem; 
         }
@@ -203,11 +271,15 @@
             padding: 1.5rem; 
             border-radius: 12px; 
             box-shadow: var(--shadow); 
+            border: 1px solid var(--border-color);
         }
         
         .controls-card h3 {
             margin: 0 0 1rem 0;
             color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .controls-grid { 
@@ -236,6 +308,7 @@
         .control-select:focus, .control-input:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(45, 125, 50, 0.1);
         }
         
         /* Quick Reports */
@@ -246,11 +319,14 @@
         .quick-reports h3 {
             margin: 0 0 1rem 0;
             color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .quick-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
             gap: 1rem; 
         }
         
@@ -258,12 +334,12 @@
             background: white; 
             border: 1px solid var(--border-color); 
             border-radius: 12px; 
-            padding: 1rem; 
+            padding: 1.5rem; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             gap: 1rem; 
-            transition: all 0.2s; 
+            transition: all 0.3s ease; 
             box-shadow: var(--shadow); 
         }
         
@@ -271,21 +347,34 @@
             border-color: var(--primary-color); 
             transform: translateY(-2px); 
             box-shadow: var(--shadow-lg); 
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
         }
         
         .quick-icon { 
-            font-size: 2rem; 
+            font-size: 2.5rem; 
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--vet-primary), var(--vet-accent));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         
         .quick-content h4 { 
             margin: 0 0 0.25rem 0; 
             color: var(--dark-color);
+            font-size: 1.1rem;
+            font-weight: 600;
         }
         
         .quick-content p { 
             margin: 0; 
             color: var(--text-light); 
             font-size: 0.875rem; 
+            line-height: 1.4;
         }
         
         /* Report Section */
@@ -294,6 +383,7 @@
             border-radius: 12px; 
             overflow: hidden; 
             box-shadow: var(--shadow); 
+            border: 1px solid var(--border-color);
         }
         
         .report-header { 
@@ -302,11 +392,15 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
         }
         
         .report-header h3 {
             margin: 0;
             color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .report-actions { 
@@ -329,11 +423,21 @@
         .welcome-icon { 
             font-size: 4rem; 
             margin-bottom: 1rem; 
+            color: var(--vet-primary);
         }
         
         .welcome-report h4 {
             color: var(--dark-color);
             margin: 0 0 1rem 0;
+            font-size: 1.25rem;
+        }
+        
+        .welcome-report p {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto 2rem;
         }
         
         .api-status {
@@ -346,45 +450,36 @@
             justify-content: center;
             gap: 0.5rem;
             font-size: 0.875rem;
+            border: 1px solid var(--border-color);
         }
         
         .status-indicator {
             font-size: 1rem;
         }
         
-        .loading-state { 
-            text-align: center; 
-            padding: 3rem; 
-        }
-        
-        .placeholder-report { 
-            text-align: center; 
-            padding: 3rem; 
-            color: var(--text-light); 
-        }
-        
-        .placeholder-icon { 
-            font-size: 4rem; 
-            margin-bottom: 1rem; 
-        }
-        
-        /* Report Content */
+        /* Report Content Styles */
         .report-summary { 
             margin-bottom: 2rem; 
         }
         
         .summary-stats { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
             gap: 1rem; 
         }
         
         .stat-item { 
             text-align: center; 
-            padding: 1rem; 
+            padding: 1.5rem; 
             background: var(--light-color); 
             border-radius: 8px; 
             border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
         
         .stat-item.success { 
@@ -400,69 +495,66 @@
         }
         
         .stat-number { 
-            font-size: 1.5rem; 
+            font-size: 2rem; 
             font-weight: 700; 
             display: block; 
             color: var(--dark-color);
+            margin-bottom: 0.5rem;
         }
         
         .stat-label { 
             font-size: 0.875rem; 
-            color: var(--text-light); 
-        }
-        
-        /* Report Tables */
-        .report-table { 
-            margin-bottom: 2rem; 
-        }
-        
-        .report-table h4 { 
-            margin-bottom: 1rem; 
-            color: var(--dark-color);
-        }
-        
-        .table-danger { 
-            background: rgba(239, 68, 68, 0.1); 
-        }
-        
-        .table-warning { 
-            background: rgba(251, 191, 36, 0.1); 
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
             color: var(--text-light);
+            font-weight: 500;
         }
         
-        /* Spinner */
-        .spinner { 
-            width: 40px; 
-            height: 40px; 
-            border: 4px solid var(--border-color); 
-            border-top: 4px solid var(--primary-color); 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-            margin: 0 auto 1rem; 
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: center;
         }
         
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--vet-accent));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--light-color);
+            transform: translateY(-1px);
         }
         
         /* Responsive */
         @media (max-width: 1024px) {
             .controls-grid { 
                 grid-template-columns: 1fr 1fr; 
+                gap: 1rem;
             }
         }
         
         @media (max-width: 768px) {
-            .main-content { 
-                padding: 1rem; 
-            }
-            
             .controls-grid { 
                 grid-template-columns: 1fr; 
             }
@@ -479,6 +571,26 @@
             
             .report-actions {
                 justify-content: center;
+            }
+            
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-report-btn {
+                padding: 1rem;
+            }
+            
+            .quick-icon {
+                font-size: 2rem;
+                width: 50px;
+                height: 50px;
             }
         }
         
@@ -501,3 +613,10 @@
     </style>
 </body>
 </html>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - VeterinaryProject</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    

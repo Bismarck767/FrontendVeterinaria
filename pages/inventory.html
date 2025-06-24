@@ -7,39 +7,336 @@
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/components.css">
     <link rel="stylesheet" href="../assets/css/inventory.css">
+    <style>
+        /* Ajustes específicos para integrar el sidebar */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Ocultar el header original ya que el sidebar tiene su propio topbar */
+        .header {
+            display: none;
+        }
+        
+        /* Ajustar el main content para que funcione con el sidebar */
+        .main-content {
+            padding: 0; /* El padding lo maneja el sidebar */
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #f1f3f4 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Contenedor interno para el contenido */
+        .content-wrapper {
+            padding: 2rem;
+            max-height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 1rem;
+            }
+        }
+        
+        /* Ajustar el loading indicator para que aparezca sobre el sidebar */
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2d7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Ajustar el modal para que aparezca sobre el sidebar */
+        .modal {
+            position: fixed;
+            z-index: 10001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .close:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .modal-form {
+            padding: 1.5rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-icon {
+            font-size: 1rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2d7d32;
+            box-shadow: 0 0 0 3px rgba(45, 125, 50, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Ajustar colores para que coincidan con el sidebar */
+        :root {
+            --vet-primary: #2d7d32;
+            --vet-secondary: #1976d2;
+            --vet-accent: #388e3c;
+            --bg-secondary: #f8fafc;
+        }
+        
+        /* Mejorar la tabla para que se vea mejor */
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .inventory-table th {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .inventory-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            color: #495057;
+        }
+        
+        .inventory-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+        
+        .sortable:hover {
+            background-color: #e9ecef;
+        }
+        
+        .th-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sort-icon {
+            opacity: 0.5;
+            transition: opacity 0.2s ease;
+        }
+        
+        .sortable:hover .sort-icon {
+            opacity: 1;
+        }
+        
+        /* Mejorar los botones de estado */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-low {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-expired {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* Mejorar los botones de acción */
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            margin-right: 0.25rem;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-edit {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .btn-edit:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .btn-delete:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-view:hover {
+            background: #6b7280;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <h1>🏥 VeterinaryProject</h1>
-            </div>
-            <nav class="nav">
-    <button class="nav-toggle" onclick="toggleMobileNav()">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-    </button>
-    
-    <ul class="nav-list" id="navList">
-        <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
-        <li><a href="inventory.html" class="nav-link">Inventario</a></li>
-        <li><a href="alerts.html" class="nav-link">Alertas</a></li>
-        <li><a href="reports.html" class="nav-link">Reportes</a></li>
-    </ul>
-</nav>
-
-            <div class="user-info">
-                <span id="userName">Usuario</span>
-                <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
-            </div>
-        </div>
-    </header>
+    <!-- El sidebar se inyectará automáticamente aquí -->
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="content-wrapper">
             <!-- Page Header -->
             <div class="page-header">
                 <div class="page-title-section">
@@ -72,28 +369,28 @@
                 <div class="stat-card">
                     <div class="stat-icon">📦</div>
                     <div class="stat-content">
-                        <span class="stat-number" id="totalMedicines">0</span>
+                        <span class="stat-number" id="totalMedicines">156</span>
                         <span class="stat-label">Total Medicamentos</span>
                     </div>
                 </div>
                 <div class="stat-card warning">
                     <div class="stat-icon">⚠️</div>
                     <div class="stat-content">
-                        <span class="stat-number" id="lowStockCount">0</span>
+                        <span class="stat-number" id="lowStockCount">5</span>
                         <span class="stat-label">Stock Bajo</span>
                     </div>
                 </div>
                 <div class="stat-card danger">
                     <div class="stat-icon">⏰</div>
                     <div class="stat-content">
-                        <span class="stat-number" id="expiringCount">0</span>
+                        <span class="stat-number" id="expiringCount">8</span>
                         <span class="stat-label">Por Vencer</span>
                     </div>
                 </div>
                 <div class="stat-card success">
                     <div class="stat-icon">💰</div>
                     <div class="stat-content">
-                        <span class="stat-number" id="totalValue">$0</span>
+                        <span class="stat-number" id="totalValue">$45,230</span>
                         <span class="stat-label">Valor Total</span>
                     </div>
                 </div>
@@ -118,6 +415,10 @@
                             <label for="filterType">Tipo de Animal:</label>
                             <select id="filterType" class="filter-select">
                                 <option value="">Todos los tipos</option>
+                                <option value="canino">🐕 Canino</option>
+                                <option value="felino">🐱 Felino</option>
+                                <option value="grandes">🐄 Animales Grandes</option>
+                                <option value="pequeños">🐰 Animales Pequeños</option>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -144,7 +445,7 @@
                 <div class="table-header">
                     <h3 class="table-title">Lista de Medicamentos</h3>
                     <div class="table-actions">
-                        <span class="results-count" id="resultsCount">0 medicamentos</span>
+                        <span class="results-count" id="resultsCount">156 medicamentos</span>
                     </div>
                 </div>
                 
@@ -153,21 +454,29 @@
                         <thead>
                             <tr>
                                 <th class="sortable" data-sort="codigo">
-                                    <span class="th-content">Código</span>
-                                    <span class="sort-icon">↕️</span>
+                                    <span class="th-content">
+                                        Código
+                                        <span class="sort-icon">↕️</span>
+                                    </span>
                                 </th>
                                 <th class="sortable" data-sort="nombre">
-                                    <span class="th-content">Medicamento</span>
-                                    <span class="sort-icon">↕️</span>
+                                    <span class="th-content">
+                                        Medicamento
+                                        <span class="sort-icon">↕️</span>
+                                    </span>
                                 </th>
                                 <th class="sortable" data-sort="cantidad">
-                                    <span class="th-content">Stock</span>
-                                    <span class="sort-icon">↕️</span>
+                                    <span class="th-content">
+                                        Stock
+                                        <span class="sort-icon">↕️</span>
+                                    </span>
                                 </th>
                                 <th>Tipo</th>
                                 <th class="sortable" data-sort="fechaVencimiento">
-                                    <span class="th-content">Vencimiento</span>
-                                    <span class="sort-icon">↕️</span>
+                                    <span class="th-content">
+                                        Vencimiento
+                                        <span class="sort-icon">↕️</span>
+                                    </span>
                                 </th>
                                 <th>Proveedor</th>
                                 <th>Estado</th>
@@ -175,12 +484,74 @@
                             </tr>
                         </thead>
                         <tbody id="medicineTableBody">
+                            <!-- Ejemplos de medicamentos -->
+                            <tr>
+                                <td><strong>DOG001</strong></td>
+                                <td>Amoxicilina 500mg</td>
+                                <td><span style="font-weight: 600; color: #059669;">45</span></td>
+                                <td>🐕 Canino</td>
+                                <td>15/12/2025</td>
+                                <td>VetMed Lab</td>
+                                <td><span class="status-badge status-available">Disponible</span></td>
+                                <td>
+                                    <button class="action-btn btn-view" title="Ver detalles">👁️</button>
+                                    <button class="action-btn btn-edit" title="Editar">✏️</button>
+                                    <button class="action-btn btn-delete" title="Eliminar">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>CAT002</strong></td>
+                                <td>Dexametasona 4mg</td>
+                                <td><span style="font-weight: 600; color: #dc2626;">3</span></td>
+                                <td>🐱 Felino</td>
+                                <td>09/07/2025</td>
+                                <td>PharmaVet</td>
+                                <td><span class="status-badge status-low">Stock Bajo</span></td>
+                                <td>
+                                    <button class="action-btn btn-view" title="Ver detalles">👁️</button>
+                                    <button class="action-btn btn-edit" title="Editar">✏️</button>
+                                    <button class="action-btn btn-delete" title="Eliminar">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>LRG003</strong></td>
+                                <td>Ivermectina 10ml</td>
+                                <td><span style="font-weight: 600; color: #059669;">28</span></td>
+                                <td>🐄 Grandes</td>
+                                <td>20/11/2025</td>
+                                <td>AgriVet Solutions</td>
+                                <td><span class="status-badge status-available">Disponible</span></td>
+                                <td>
+                                    <button class="action-btn btn-view" title="Ver detalles">👁️</button>
+                                    <button class="action-btn btn-edit" title="Editar">✏️</button>
+                                    <button class="action-btn btn-delete" title="Eliminar">🗑️</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>SME004</strong></td>
+                                <td>Cefalexina 250mg</td>
+                                <td><span style="font-weight: 600; color: #dc2626;">0</span></td>
+                                <td>🐰 Pequeños</td>
+                                <td>15/06/2025</td>
+                                <td>MicroVet Inc</td>
+                                <td><span class="status-badge status-expired">Vencido</span></td>
+                                <td>
+                                    <button class="action-btn btn-view" title="Ver detalles">👁️</button>
+                                    <button class="action-btn btn-edit" title="Editar">✏️</button>
+                                    <button class="action-btn btn-delete" title="Eliminar">🗑️</button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination -->
                 <div class="pagination-container" id="paginationContainer">
+                    <div class="pagination">
+                        <button class="pagination-btn" disabled>← Anterior</button>
+                        <span class="pagination-info">Página 1 de 4</span>
+                        <button class="pagination-btn">Siguiente →</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -191,7 +562,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Agregar Medicamento</h3>
-                <span class="close">&times;</span>
+                <button class="close" onclick="closeMedicineModal()">&times;</button>
             </div>
             <form id="medicineForm" class="modal-form">
                 <div class="form-grid">
@@ -248,6 +619,10 @@
                         </label>
                         <select id="medType" name="tipoAnimal" required>
                             <option value="">Seleccionar tipo</option>
+                            <option value="canino">🐕 Canino</option>
+                            <option value="felino">🐱 Felino</option>
+                            <option value="grandes">🐄 Animales Grandes</option>
+                            <option value="pequeños">🐰 Animales Pequeños</option>
                         </select>
                     </div>
                 </div>
@@ -267,12 +642,16 @@
                         </label>
                         <select id="medSupplier" name="proveedorId" required>
                             <option value="">Seleccionar proveedor</option>
+                            <option value="1">VetMed Lab</option>
+                            <option value="2">PharmaVet</option>
+                            <option value="3">AgriVet Solutions</option>
+                            <option value="4">MicroVet Inc</option>
                         </select>
                     </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeMedicineModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
                         <span class="btn-icon">💾</span>
                         Guardar
@@ -280,11 +659,13 @@
                 </div>
             </form>
         </div>
-    </main>
-<script src="../assets/js/global-navigation.js"></script>
-    <!-- Scripts -->
-   <script src="../assets/js/global-api.js"></script>
-<script src="../assets/js/inventory.js"></script>
+    </div>
 
+    <!-- Scripts -->
+    <script src="../assets/js/sidebar.js"></script>
+    <script src="../assets/js/global-api.js"></script>
+    <script src="../assets/js/inventory.js"></script>
+
+   
 </body>
 </html>
