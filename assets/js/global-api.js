@@ -997,7 +997,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Solo mostrar bienvenida si no se ha mostrado antes en esta sesión
         const welcomeShown = sessionStorage.getItem('welcome_shown');
         if (!welcomeShown) {
-            GlobalHelpers.showToast(`Bienvenido ${GlobalApiService.currentUser.username}`, 'info');
+            GlobalHelpers.showToast(`Bienvenido `, 'info');
             sessionStorage.setItem('welcome_shown', 'true');
         }
     }
